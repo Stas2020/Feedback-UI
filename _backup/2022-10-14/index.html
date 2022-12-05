@@ -1,0 +1,3590 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<meta charset="utf-8">
+
+<link href="index.css" rel="stylesheet">
+
+
+
+<link href="styles/kendo.common.min.css" rel="stylesheet">
+<link href="styles/kendo.rtl.min.css" rel="stylesheet">
+<link href="styles/kendo.default.min.css" rel="stylesheet">
+<link href="styles/kendo.default.mobile.min.css" rel="stylesheet">
+<script src="js/sha256.js"></script>
+<script src="js/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="js/jszip.min.js"></script>
+<script src="js/kendo.all.min.js"></script>
+
+
+
+
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<script src="pah.js"></script>
+<link href="pah.css" rel="stylesheet">
+<script src="edit.js"></script>
+<script src="report.js"></script>
+
+<script id="detail-template" type="text/x-kendo-template">
+    <div >
+        <div>
+            <div style="display: inline-block;">Управляющий: </div><div style="display: inline-block; font-style: italic" class="user"></div>
+        </div>
+        <div>
+            <div style="display: inline-block;">Реакция:</div><div style="display: inline-block; font-style: italic"> #: AnswerDescription # </div>
+        </div>
+
+    </div>
+
+</script>
+<script id="detail-template_edit" type="text/x-kendo-template">
+    <div style="vertical-align:top; display: inline-block; width: 800px; height: 320px">
+        <div class="left"></div>
+    </div>
+    <div style="vertical-align:top; display: inline-block; width: 50px; height: 320px;  text-align: center;">
+
+    </div>
+    <div style="vertical-align:top; display: inline-block; width: 800px; height: 320px">
+        <div class="right"></div>
+    </div>
+</script>
+
+<script>
+
+
+    var DepartmentList = [];
+    var ClassList = [];
+    var TypeList = [];
+    var SourceList = [];
+    var Users = [];
+    var Marks = [];
+    var ListMarks = [];
+    var ajax_count = 0;
+
+    var Grid_message;
+    var id_for_answer;
+    var id_feedback;
+    var user_id;
+    var Expand = false;
+
+    var newMark = false;
+
+    var StartDate;
+    var EndDate;
+
+    var dataSource;
+    var appeals_id = -1;
+    var RoleUser;
+    var host = "s2010";
+
+    var RefEqualsTypes = null;
+    var ReportTypes = null;
+    var CheckLists = null;
+
+    $(document).ready(function () {
+
+        host = window.location.hostname;
+
+
+
+        StartDateRep = new Date();
+        EndDateRep = new Date();
+
+        var today = new Date();
+        var priorDate = new Date(new Date().setDate(today.getDate() - 365));
+
+        EndDate = kendo.toString(kendo.parseDate(today), 'dd/MM/yyyy');
+        StartDate = kendo.toString(kendo.parseDate(priorDate), 'dd/MM/yyyy');
+
+
+
+        $("#primaryTextButton").kendoButton({
+            click: onClickButt,
+            visible: false
+        });
+        $("#exit").kendoButton({
+            click: onExit,
+            visible: false
+        });
+
+        $("#Button_login").kendoButton({
+            click: onLogin
+        });
+
+
+        $("#password").keypress(function (event) {
+            if (event.keyCode === 13) {
+                onLogin();
+            }
+
+        });
+
+        $("#ExpandCollapseButton").kendoButton({
+            click: ExpandCollapse
+        });
+
+
+        var window_login = $("#window_login")
+        window_login.kendoWindow({
+            width: "400px",
+            height: "170px",
+            title: "Авторизироваться",
+            visible: false,
+            open: adjustSize
+        });
+        $("#window_login").data("kendoWindow").center().open();
+
+
+
+        $("#Filter").kendoButton({
+            click: OnClicButtonFilter
+        });
+        $("#datepickerstart").kendoDatePicker({ format: "dd/MM/yyyy" });
+        $("#datepickerend").kendoDatePicker({ format: "dd/MM/yyyy" });
+
+        var window_filter = $("#window_filter")
+        window_filter.kendoWindow({
+            width: "320px",
+            height: "170px",
+            title: "Фильтр",
+            visible: false
+        });
+
+
+
+
+        $('#email_emp').blur(function () {
+            var pattern = /^([a-z0-9_\.-])+@[a-z0-9-]+\.([a-z]{2,4}\.)?[a-z]{2,4}$/i;
+            if (!pattern.test($(this).val())) {
+                alert("Некорректный email!");
+            }
+        });
+
+        $("#Report2").kendoButton({
+            click: OnClicButtonReport2
+        });
+        $("#Report").kendoButton({
+            click: OnClicButtonReport
+        });
+        $("#datepickerstart_rep").kendoDatePicker({ format: "dd/MM/yyyy" });
+        $("#datepickerend_rep").kendoDatePicker({ format: "dd/MM/yyyy" });
+
+
+        var window_report = $("#window_report")
+        window_report.kendoWindow({
+            width: "1100px",
+            height: "600px",
+            title: "Отчет",
+            open: adjustSize,
+            visible: false
+        });
+
+        $("#datepickerstart_rep2").kendoDatePicker({ format: "dd/MM/yyyy" });
+        $("#datepickerend_rep2").kendoDatePicker({ format: "dd/MM/yyyy" });
+
+
+
+        $("#staff_vacation_dep").kendoComboBox({
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: []
+        });
+
+
+        
+        $("#datepickerstart_staff_turnover").kendoDatePicker({ format: "dd/MM/yyyy" });
+        $("#datepickerstart_staff_turnover").data("kendoDatePicker").value(today);
+
+        $("#datepickerend_staff_turnover").kendoDatePicker({ format: "dd/MM/yyyy" });
+        $("#datepickerend_staff_turnover").data("kendoDatePicker").value(today);
+
+        $("#datepickerstart_staffvacation").kendoDatePicker({ format: "dd/MM/yyyy" });
+        $("#datepickerend_staffvacation").kendoDatePicker({ format: "dd/MM/yyyy" });
+
+        $("#datepickerstart_staffvacation").data("kendoDatePicker").value(today);
+        $("#datepickerend_staffvacation").data("kendoDatePicker").value(today);
+
+        var window_report2 = $("#window_report2")
+        window_report2.kendoWindow({
+            width: "1300px",
+            height: "800px",
+            title: "Отчет 2",
+            open: adjustSize,
+            visible: false
+        });
+
+        var window_report_sanpin = $("#window_report_sanpin")
+        window_report_sanpin.kendoWindow({
+            width: "800px",
+            height: "800px",
+            title: "Отчет",
+            open: adjustSize,
+            visible: false
+        });
+
+        var window_sanpin_details = $("#window_sanpin_details")
+        window_sanpin_details.kendoWindow({
+            width: "1000px",
+            height: "600px",
+            title: "",
+            visible: false
+        });
+
+        var window_select_naumen = $("#window_select_naumen")
+        window_select_naumen.kendoWindow({
+            width: "740px",
+            height: "700px",
+            title: "Выбор блюда из Naumen",
+            visible: false,
+            resizable: false,
+            open: adjustSize
+        });
+
+        var isMobile = ($(window).width() < 1000 || $(window).height() < 600)
+
+        var window_photo = $("#window_photo")
+        window_photo.kendoWindow({
+            width: isMobile ? "100%" : "1200px",
+            height: isMobile ? "90%" : "700px",
+            minHeight: isMobile ? "90%" : 700,
+            minWidth: isMobile ? "100%" : 700,
+            title: "Просмотр фото",
+            visible: false,
+            resizable: true,
+            scrollable: false
+        });
+
+        var window_pah_ref = $("#window_pah_ref")
+        window_pah_ref.kendoWindow({
+            actions: ["Close"],
+            width: "1000px",
+            height: "704px",
+            modal: true,
+            resizable: true,
+            title: "Референсные значения",
+            visible: false,
+            scrollable: false,
+            //open: adjustSize,
+            adjustSize: {
+                width: 1000,
+                height: 704
+            }
+        });
+
+        $("#window_pah_ref").data("kendoWindow")
+            .bind("close", function (e) {
+                var grid = $("#grid_pahar_refs").data("kendoGrid");
+                if (grid) {
+                    grid.destroy();
+                }
+                $("#grid_pahar_refs").remove();
+            });
+
+        var window_pahar_log = $("#window_pahar_log")
+        window_pahar_log.kendoWindow({
+            width: "780px",
+            height: "770px",
+            title: "Журнал расчета показателей",
+            visible: false
+        });
+
+
+        var window_staffturnover_deps = $("#window_staffturnover_deps")
+        window_staffturnover_deps.kendoWindow({
+            actions: ["Close"],
+            width: "800px",
+            height: "800px",
+            modal: true,
+            resizable: false,
+            title: "Подразделения",
+            visible: false,
+            sizable: true,
+            //open: adjustSize,
+            adjustSize: {
+                width: 600,
+                height: 800
+            }
+        });
+        $("#window_staffturnover_deps").data("kendoWindow")
+            .bind("close", function (e) {
+                StaffTurnoverDepsOk();
+            });
+
+        var window_staffvacation_dates = $("#window_staffvacation_dates")
+        window_staffvacation_dates.kendoWindow({
+            actions: ["Close"],
+            width: "400px",
+            height: "170px",
+            modal: true,
+            resizable: false,
+            title: "Период",
+            visible: false,
+            open: adjustSize
+        });
+
+    });
+    function adjustSize() {
+        // For small screens, maximize the window when it is shown.
+        // You can also make the check again in $(window).resize if you want to
+        // but you will have to change the way to reference the widget and then
+        // to use $("#theWindow").data("kendoWindow").
+        // Alternatively, you may want to .center() the window.
+
+        if ($(window).width() < 1000 || $(window).height() < 600) {
+            this.maximize();
+        }
+    }
+
+    function OnClicButtonReport2() {
+        $("#datepickerstart_rep2").data("kendoDatePicker").value(new Date());
+        $("#datepickerend_rep2").data("kendoDatePicker").value(new Date());
+
+        $("#window_report2").data("kendoWindow").center().open();
+
+
+    }
+    function OnClicButtonReport() {
+        $("#datepickerstart_rep").data("kendoDatePicker").value(StartDateRep);
+        $("#datepickerend_rep").data("kendoDatePicker").value(EndDateRep);
+
+        $("#window_report").data("kendoWindow").center().open();
+
+
+    }
+    var ReportData = [];
+    var StartDateRep;
+    var EndDateRep;
+
+    function OnButton_report() {
+        var SD = $("#datepickerstart_rep").val().split('/');
+        var ED = $("#datepickerend_rep").val().split('/');
+
+
+        StartDateRep = new Date(SD[2], SD[1] - 1, SD[0]);
+        EndDateRep = new Date(ED[2], ED[1] - 1, ED[0]);
+
+        ReportData = [];
+        $.ajax({
+            url: "https://" + host + "/complaints/api/info/GetSentimentStat?",
+            global: false,
+            type: "GET",
+            success: function (data) {
+
+                if (typeof (data) == "object") {
+
+                    data.forEach(function (item) {
+
+
+                        var date = new Date(item.Date);
+
+                        if (date < StartDateRep || date > EndDateRep) {
+                            return;
+                        }
+                        var DepSentimentList = item.DepSentimentList;
+
+                        DepSentimentList.forEach(function (itm) {
+                            var DepId = itm.DepId;
+                            var SentimentList = itm.SentimentList;
+
+                            SentimentList.forEach(function (its) {
+                                var MySentiment = its.MySentiment;
+                                var AISentiment = its.AISentiment;
+
+                                PrepareReport(DepId, MySentiment, AISentiment);
+
+                            });
+
+                        });
+
+                    });
+
+                    ShowReport();
+                } else {
+                    onExit();
+                }
+            }
+        });
+
+    }
+
+
+    function PrepareReport(DepId, MySentiment, AISentiment) {
+
+        var Avail = false;
+        ReportData.forEach(function (value) {
+            if (value.DepId == DepId) {
+                value.AverageMySentiment = value.AverageMySentiment + MySentiment;
+                value.AverageAISentiment = value.AverageAISentiment + AISentiment;
+                value.Count = value.Count + 1;
+                switch (MySentiment) {
+                    case 1: value.CountSentiment1 = value.CountSentiment1 + 1;
+                        break;
+                    case 2: value.CountSentiment2 = value.CountSentiment2 + 1;
+                        break;
+                    case 3: value.CountSentiment3 = value.CountSentiment3 + 1;
+                        break;
+                }
+                Avail = true;
+            }
+        });
+
+
+        if (Avail == false) {
+            var item = new Object();
+            item.DepId = DepId;
+            item.AverageMySentiment = MySentiment;
+            item.AverageAISentiment = AISentiment;
+            item.Count = 1;
+            switch (MySentiment) {
+                case 1: item.CountSentiment1 = 1;
+                    item.CountSentiment2 = 0;
+                    item.CountSentiment3 = 0;
+                    break;
+                case 2: item.CountSentiment1 = 0;
+                    item.CountSentiment2 = 1;
+                    item.CountSentiment3 = 0;
+                    break;
+                case 3: item.CountSentiment1 = 0;
+                    item.CountSentiment2 = 0;
+                    item.CountSentiment3 = 1;
+                    break;
+            }
+
+
+            ReportData.push(item);
+        }
+
+    }
+
+    function ShowReport() {
+
+
+
+        var ResultReport = [];
+        ReportData.forEach(function (value) {
+            var item = new Object();
+            item.division_id = value.DepId;
+            item.AverageII = Math.round(value.AverageAISentiment / value.Count);
+            item.AverageSentiment = value.Count;
+            item.CountSentiment1 = value.CountSentiment1;
+            item.CountSentiment2 = value.CountSentiment2;
+            item.CountSentiment3 = value.CountSentiment3;
+
+            ResultReport.push(item);
+        });
+
+
+        var dataSource = new kendo.data.DataSource({
+            data: ResultReport,
+            aggregate: [
+                { field: "AverageII", aggregate: "sum" },
+                { field: "AverageSentiment", aggregate: "sum" },
+                { field: "CountSentiment1", aggregate: "sum" },
+                { field: "CountSentiment2", aggregate: "sum" },
+                { field: "CountSentiment3", aggregate: "sum" }
+            ]
+        });
+
+
+        $("#box_grid_report").kendoGrid({
+            height: 500,
+            sortable: true,
+            dataSource: dataSource,
+            mobile: true,
+            columns: [{
+                field: "division_id",
+                values: DepartmentList,
+                title: "Подразделение",
+                width: 240,
+                footerTemplate: "Итого: "
+            }, {
+                field: "AverageII",
+                title: "Среднее ИИ"
+
+            }, {
+                field: "AverageSentiment",
+                title: "Кол-во. отзывов",
+                footerTemplate: "#=sum#"
+            }, {
+                field: "CountSentiment1",
+                width: 150,
+                title: "Позитивный",
+                footerTemplate: "#=sum#"
+            }, {
+                field: "CountSentiment2",
+                width: 150,
+                title: "Нейтральных",
+                footerTemplate: "#=sum#"
+            }, {
+                field: "CountSentiment3",
+                width: 150,
+                title: "Негативных",
+                footerTemplate: "#=sum#"
+            }]
+        });
+
+
+
+    }
+
+    function OnClicButtonFilter() {
+
+        $("#datepickerstart").data("kendoDatePicker").value(StartDate);
+        $("#datepickerend").data("kendoDatePicker").value(EndDate);
+        $("#window_filter").data("kendoWindow").center().open();
+    }
+
+    function ExpandCollapse() {
+        if (Expand == false) {
+            $('#ExpandCollapseButton').text("Свернуть");
+
+            var grid = $("#grid_message").data("kendoGrid");
+            $(".k-master-row").each(function (index) {
+                grid.expandRow(this);
+            });
+            Expand = true;
+        }
+        else {
+            $('#ExpandCollapseButton').text("Развернуть");
+
+            var grid = $("#grid_message").data("kendoGrid");
+            $(".k-master-row").each(function (index) {
+                grid.collapseRow(this);
+            });
+            Expand = false;
+        }
+    }
+
+    function beep2() {
+        var snd = new Audio("data:audio/wav;base64,//uQRAAAAWMSLwUIYAAsYkXgoQwAEaYLWfkWgAI0wWs/ItAAAGDgYtAgAyN+QWaAAihwMWm4G8QQRDiMcCBcH3Cc+CDv/7xA4Tvh9Rz/y8QADBwMWgQAZG/ILNAARQ4GLTcDeIIIhxGOBAuD7hOfBB3/94gcJ3w+o5/5eIAIAAAVwWgQAVQ2ORaIQwEMAJiDg95G4nQL7mQVWI6GwRcfsZAcsKkJvxgxEjzFUgfHoSQ9Qq7KNwqHwuB13MA4a1q/DmBrHgPcmjiGoh//EwC5nGPEmS4RcfkVKOhJf+WOgoxJclFz3kgn//dBA+ya1GhurNn8zb//9NNutNuhz31f////9vt///z+IdAEAAAK4LQIAKobHItEIYCGAExBwe8jcToF9zIKrEdDYIuP2MgOWFSE34wYiR5iqQPj0JIeoVdlG4VD4XA67mAcNa1fhzA1jwHuTRxDUQ//iYBczjHiTJcIuPyKlHQkv/LHQUYkuSi57yQT//uggfZNajQ3Vmz+Zt//+mm3Wm3Q576v////+32///5/EOgAAADVghQAAAAA//uQZAUAB1WI0PZugAAAAAoQwAAAEk3nRd2qAAAAACiDgAAAAAAABCqEEQRLCgwpBGMlJkIz8jKhGvj4k6jzRnqasNKIeoh5gI7BJaC1A1AoNBjJgbyApVS4IDlZgDU5WUAxEKDNmmALHzZp0Fkz1FMTmGFl1FMEyodIavcCAUHDWrKAIA4aa2oCgILEBupZgHvAhEBcZ6joQBxS76AgccrFlczBvKLC0QI2cBoCFvfTDAo7eoOQInqDPBtvrDEZBNYN5xwNwxQRfw8ZQ5wQVLvO8OYU+mHvFLlDh05Mdg7BT6YrRPpCBznMB2r//xKJjyyOh+cImr2/4doscwD6neZjuZR4AgAABYAAAABy1xcdQtxYBYYZdifkUDgzzXaXn98Z0oi9ILU5mBjFANmRwlVJ3/6jYDAmxaiDG3/6xjQQCCKkRb/6kg/wW+kSJ5//rLobkLSiKmqP/0ikJuDaSaSf/6JiLYLEYnW/+kXg1WRVJL/9EmQ1YZIsv/6Qzwy5qk7/+tEU0nkls3/zIUMPKNX/6yZLf+kFgAfgGyLFAUwY//uQZAUABcd5UiNPVXAAAApAAAAAE0VZQKw9ISAAACgAAAAAVQIygIElVrFkBS+Jhi+EAuu+lKAkYUEIsmEAEoMeDmCETMvfSHTGkF5RWH7kz/ESHWPAq/kcCRhqBtMdokPdM7vil7RG98A2sc7zO6ZvTdM7pmOUAZTnJW+NXxqmd41dqJ6mLTXxrPpnV8avaIf5SvL7pndPvPpndJR9Kuu8fePvuiuhorgWjp7Mf/PRjxcFCPDkW31srioCExivv9lcwKEaHsf/7ow2Fl1T/9RkXgEhYElAoCLFtMArxwivDJJ+bR1HTKJdlEoTELCIqgEwVGSQ+hIm0NbK8WXcTEI0UPoa2NbG4y2K00JEWbZavJXkYaqo9CRHS55FcZTjKEk3NKoCYUnSQ0rWxrZbFKbKIhOKPZe1cJKzZSaQrIyULHDZmV5K4xySsDRKWOruanGtjLJXFEmwaIbDLX0hIPBUQPVFVkQkDoUNfSoDgQGKPekoxeGzA4DUvnn4bxzcZrtJyipKfPNy5w+9lnXwgqsiyHNeSVpemw4bWb9psYeq//uQZBoABQt4yMVxYAIAAAkQoAAAHvYpL5m6AAgAACXDAAAAD59jblTirQe9upFsmZbpMudy7Lz1X1DYsxOOSWpfPqNX2WqktK0DMvuGwlbNj44TleLPQ+Gsfb+GOWOKJoIrWb3cIMeeON6lz2umTqMXV8Mj30yWPpjoSa9ujK8SyeJP5y5mOW1D6hvLepeveEAEDo0mgCRClOEgANv3B9a6fikgUSu/DmAMATrGx7nng5p5iimPNZsfQLYB2sDLIkzRKZOHGAaUyDcpFBSLG9MCQALgAIgQs2YunOszLSAyQYPVC2YdGGeHD2dTdJk1pAHGAWDjnkcLKFymS3RQZTInzySoBwMG0QueC3gMsCEYxUqlrcxK6k1LQQcsmyYeQPdC2YfuGPASCBkcVMQQqpVJshui1tkXQJQV0OXGAZMXSOEEBRirXbVRQW7ugq7IM7rPWSZyDlM3IuNEkxzCOJ0ny2ThNkyRai1b6ev//3dzNGzNb//4uAvHT5sURcZCFcuKLhOFs8mLAAEAt4UWAAIABAAAAAB4qbHo0tIjVkUU//uQZAwABfSFz3ZqQAAAAAngwAAAE1HjMp2qAAAAACZDgAAAD5UkTE1UgZEUExqYynN1qZvqIOREEFmBcJQkwdxiFtw0qEOkGYfRDifBui9MQg4QAHAqWtAWHoCxu1Yf4VfWLPIM2mHDFsbQEVGwyqQoQcwnfHeIkNt9YnkiaS1oizycqJrx4KOQjahZxWbcZgztj2c49nKmkId44S71j0c8eV9yDK6uPRzx5X18eDvjvQ6yKo9ZSS6l//8elePK/Lf//IInrOF/FvDoADYAGBMGb7FtErm5MXMlmPAJQVgWta7Zx2go+8xJ0UiCb8LHHdftWyLJE0QIAIsI+UbXu67dZMjmgDGCGl1H+vpF4NSDckSIkk7Vd+sxEhBQMRU8j/12UIRhzSaUdQ+rQU5kGeFxm+hb1oh6pWWmv3uvmReDl0UnvtapVaIzo1jZbf/pD6ElLqSX+rUmOQNpJFa/r+sa4e/pBlAABoAAAAA3CUgShLdGIxsY7AUABPRrgCABdDuQ5GC7DqPQCgbbJUAoRSUj+NIEig0YfyWUho1VBBBA//uQZB4ABZx5zfMakeAAAAmwAAAAF5F3P0w9GtAAACfAAAAAwLhMDmAYWMgVEG1U0FIGCBgXBXAtfMH10000EEEEEECUBYln03TTTdNBDZopopYvrTTdNa325mImNg3TTPV9q3pmY0xoO6bv3r00y+IDGid/9aaaZTGMuj9mpu9Mpio1dXrr5HERTZSmqU36A3CumzN/9Robv/Xx4v9ijkSRSNLQhAWumap82WRSBUqXStV/YcS+XVLnSS+WLDroqArFkMEsAS+eWmrUzrO0oEmE40RlMZ5+ODIkAyKAGUwZ3mVKmcamcJnMW26MRPgUw6j+LkhyHGVGYjSUUKNpuJUQoOIAyDvEyG8S5yfK6dhZc0Tx1KI/gviKL6qvvFs1+bWtaz58uUNnryq6kt5RzOCkPWlVqVX2a/EEBUdU1KrXLf40GoiiFXK///qpoiDXrOgqDR38JB0bw7SoL+ZB9o1RCkQjQ2CBYZKd/+VJxZRRZlqSkKiws0WFxUyCwsKiMy7hUVFhIaCrNQsKkTIsLivwKKigsj8XYlwt/WKi2N4d//uQRCSAAjURNIHpMZBGYiaQPSYyAAABLAAAAAAAACWAAAAApUF/Mg+0aohSIRobBAsMlO//Kk4soosy1JSFRYWaLC4qZBYWFRGZdwqKiwkNBVmoWFSJkWFxX4FFRQWR+LsS4W/rFRb/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////VEFHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU291bmRib3kuZGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMjAwNGh0dHA6Ly93d3cuc291bmRib3kuZGUAAAAAAAAAACU=");
+        snd.play();
+    }
+
+    function onLogin() {
+        beep2();
+        var username = $("#username").val();
+        var password = sha256($("#password").val());
+
+        $.ajax({
+            url: "https://" + host + "/complaints/api/auth/getuser?Login=" + username + "&Password=" + password,
+            type: "GET",
+            success: function (data) {
+
+                if (typeof (data) == "object") {
+
+                    if (data.Id == -1) {
+                        user_id = data.id;
+                        $("#login-message").text("Нет доступа");
+                    }
+                    else {
+
+                        user_id = data.Id;
+
+                        RoleUser = new Object();
+                        RoleUser.UserId = data.Id;
+                        RoleUser.AvailableFunction = [];
+
+                        data.FuncList.forEach(function (item) {
+
+                            item.Role;
+
+                            var Function = new Object();
+                            Function.FunctionId = item.Function.FunctionId;
+
+                            var Permissions = new Object();
+                            Permissions.Edit = item.NativeRight.Edit;
+                            Permissions.Delete = item.NativeRight.Delete;
+                            Permissions.Add = item.NativeRight.Add;
+                            Permissions.View = item.NativeRight.View;
+
+                            Function.Permissions = Permissions;
+
+                            RoleUser.AvailableFunction[item.Function.FunctionName] = Function;
+
+                        });
+
+                        RoleUser.CheckLists = data.CheckLists;
+
+
+
+
+
+
+                        if (user_id != 10 && user_id != 2107 && user_id != 1089 && user_id != 1065) // Костыль - создать роль/функцию для редактирования данных
+                        {
+                            userCanChangeData = false;
+                            if (user_id != 2138 && user_id != 2139 && user_id != 2140) {
+                                userCanChangeOnlyStaffTableData = false;
+                                userCanChangeOnlyDecret = false;
+                                userCanChangeOnlyVacations = false;
+                            }
+                            else {
+                                userCanChangeOnlyStaffTableData = true;
+                                userCanChangeOnlyDecret = true;
+                                userCanChangeOnlyVacations = true;
+                            }
+                        }
+                        else {
+                            userCanChangeData = true;
+                            userCanChangeOnlyStaffTableData = true;
+                            userCanChangeOnlyDecret = true;
+                            userCanChangeOnlyVacations = true;
+                        }
+						//разрешаем всем править отпуска
+						userCanChangeOnlyVacations = true;
+
+
+
+
+
+
+
+                        $("#window_login").data("kendoWindow").center().close();
+                        $("#login-message").text("");
+                        $("#tools").css("display", "inline");
+                        $("#box_grid").css("display", "");
+
+                        $("#tabs").css("display", "");
+
+                        //if (user_id == 2107 || user_id == 10)
+                        //$("#PahRefBox").css("display", "block");
+
+                        getsources();
+                        FillCheckList();
+                        GetDataPahar();
+                        if (RoleUser.CheckLists.length > 0) {
+                            $("#sanpin").css("display", "block");
+                            //$("#report_sanpin").css("display","block");
+                            //RefreshSanPin();
+                        }
+                        else {
+                            $("#sanpin").css("display", "none");
+                            //$("#report_sanpin").css("display","none");
+                        }
+
+                        init_editCheckList();
+
+                        //
+                        kengoObjectsInit();
+
+                    }
+                } else {
+                    onExit();
+                }
+            }
+        });
+
+        $("#tab-content").css("display", "block");
+
+    };
+
+
+
+
+    function FillCheckList() {
+        $("#check_list").kendoComboBox({
+            dataTextField: "CheckListName",
+            dataValueField: "CheckListId",
+            dataSource: RoleUser.CheckLists,
+            change: onChangeCheckList,
+            index: 0
+        });
+    }
+
+    function getsources() {
+        $.ajax({
+            url: "https://" + host + "/complaints/api/info/getsources",
+            global: false,
+            type: "GET",
+            success: function (data) {
+                if (typeof (data) == "object") {
+
+                    SourceList = [];
+                    data.forEach(function (item) {
+                        var ddt = new Object();
+                        ddt.value = item.SourceId;
+                        ddt.text = item.Description;
+                        SourceList.push(ddt);
+
+                    });
+                    gettypes();
+                } else {
+                    onExit();
+                }
+            }
+        });
+    }
+
+    function gettypes() {
+        $.ajax({
+            url: "https://" + host + "/complaints/api/info/gettypes",
+            global: false,
+            type: "GET",
+            success: function (data) {
+                if (typeof (data) == "object") {
+
+                    TypeList = [];
+                    data.forEach(function (item) {
+                        var ddt = new Object();
+                        ddt.value = item.TypeId;
+                        ddt.text = item.Description;
+                        TypeList.push(ddt);
+
+                    });
+                    getclasses();
+                } else {
+                    onExit();
+                }
+            }
+        });
+    }
+
+    function getclasses() {
+        $.ajax({
+            url: "https://" + host + "/complaints/api/info/getclasses",
+            global: false,
+            type: "GET",
+            success: function (data) {
+                if (typeof (data) == "object") {
+
+                    ClassList = [];
+                    data.forEach(function (item) {
+                        var ddt = new Object();
+                        ddt.value = item.ClassId;
+                        ddt.text = item.Description;
+                        ClassList.push(ddt);
+
+                    });
+                    getdepartments();
+
+                } else {
+                    onExit();
+                }
+            }
+        });
+    }
+
+    function getdepartments() {
+        $.ajax({
+            url: "https://" + host + "/complaints/api/info/getdepartments",
+            global: false,
+            type: "GET",
+            success: function (data) {
+                if (typeof (data) == "object") {
+
+                    dep_list = data;
+                    DepartmentList = [];
+                    var depsWithAll = []
+                    data.forEach(function (item) {
+                        var ddt = new Object();
+                        ddt.value = item.DepId;
+                        ddt.text = item.DepName;
+                        DepartmentList.push(ddt);
+
+                        if (item.isActive)
+                            depsWithAll.push({ value: item.DepNum, text: String(item.DepNum) + " " + item.DepName })
+                    });
+                    depsWithAll.unshift({ value: "ALL", text: "Все подразделения" })
+                    $("#staff_vacation_dep").data("kendoComboBox").setDataSource(depsWithAll);
+
+                    getusers();
+
+
+                } else {
+                    onExit();
+                }
+            }
+        });
+    }
+
+    function getusers() {
+        $.ajax({
+            url: "https://" + host + "/complaints/api/auth/getusers",
+            global: false,
+            type: "GET",
+            success: function (data) {
+                if (typeof (data) == "object") {
+
+                    Users = [];
+                    data.forEach(function (item) {
+                        var ddt = new Object();
+                        ddt.value = item.Id;
+                        ddt.text = item.Login;
+                        Users.push(ddt);
+
+                    });
+                    getmarks();
+                } else {
+                    onExit();
+                }
+            }
+        });
+    }
+
+    function getmarks() {
+        $.ajax({
+            url: "https://" + host + "/complaints/api/info/getmarks",
+            global: false,
+            type: "GET",
+            success: function (data) {
+                if (typeof (data) == "object") {
+
+                    ListMarks = [];
+                    data.forEach(function (item) {
+                        var ddt = new Object();
+                        ddt.value = item.MarkId;
+                        ddt.text = item.MarkText;
+                        ddt.color = item.MarkColor;
+                        Marks[item.MarkId] = ddt;
+                        ListMarks.push(ddt);
+
+                    });
+                    RefreshStaffing();
+                    ShowGrid();
+                } else {
+                    onExit();
+                }
+            }
+        });
+    }
+
+
+    function onExit() {
+        user_id = -1;
+
+        $("#window_login").data("kendoWindow").center().open();
+        $("#tools").css("display", "none");
+        $("#tabs").css("display", "none");
+        $("#tab-content").css("display", "none");
+
+
+        $('#buttons').remove();
+        $('#buttons').remove();
+
+        $("#okButton").data("kendoButton").destroy();
+        $("#closeButton").data("kendoButton").destroy();
+        $("#okButton_mark").data("kendoButton").destroy();
+
+        $('#picker').remove();
+
+
+        $("#window").data("kendoWindow").close();
+        $("#window_report").data("kendoWindow").close();
+        $("#window_report2").data("kendoWindow").close();
+
+        $("#box_grid").css("display", "none");
+        $("#grid_message").data("kendoGrid").destroy();
+
+        var box_grid_report2 = $("#box_grid_report2").data("kendoGrid");
+        if (box_grid_report2) { box_grid_report2.destroy(); }
+
+        $("#datepickerstart_staffvacation").data("kendoDatePicker").destroy();
+        $("#datepickerend_staffvacation").data("kendoDatePicker").destroy();
+        $("#datepickerstart_staff_turnover").data("kendoDatePicker").destroy();
+        $("#datepickerend_staff_turnover").data("kendoDatePicker").destroy();
+        $("#staff_vacation_dep").data("kendoComboBox").destroy();
+
+
+        EraseCheckList();
+
+
+    }
+
+
+    function EraseCheckList() {
+        $("#subdivisionsanpin").data("kendoComboBox").value("");
+        $("#check_list").data("kendoComboBox").value("");
+        GenerateDatePikerSAnPin([]);
+
+
+        $('#QuestionGroup').text("");
+        $('#numdocsp_input').val("");
+        $("#numdocsp_input").prop("disabled", false);
+
+        $('#numdoc_desc').val("");
+        $('#numdoc_desc').hide("");
+        $('#numdocsp_select_button').hide("");
+
+        $("#tableq").remove();
+        $('#buttons').remove();
+
+        $("#start").css("display", "block");
+        $("#division").text("Название подразделения");
+        $("#subdivisionsanpin").data("kendoComboBox").value("");
+        $("#check_list").data("kendoComboBox").value("");
+
+
+        EraseNumDocList();
+
+    }
+
+    function EraseNumDocList() {
+        $("#numdocsp_input").val("");
+        $("#numdocsp_input").hide();
+
+        $('#numdoc_desc').val("");
+        $('#numdoc_desc').hide("");
+        $('#numdocsp_select_button').hide("");
+
+        $(".numdocsanpin_").hide();
+        $("#numdocsanpin").data("kendoComboBox").value("");
+        var combobox = $("#numdocsanpin").data("kendoComboBox");
+        combobox.setDataSource([]);
+    }
+
+    function ShowMarkForm(item_id, mark_id, mark_color) {
+        id_feedback = item_id;
+        $("#addmark").css("display", "none");
+        $("#selectmark").css("display", "block");
+        newMark = false;
+
+        if (typeof (mark_id) != "undefined") {
+            $("#listmarks").data("kendoComboBox").value(mark_id);
+            $("#colorbox").css("background", toColor(mark_color));
+
+        }
+        else {
+            $("#listmarks").data("kendoComboBox").value(null);
+            $("#colorbox").css("background", "#ffffff");
+
+        }
+
+
+        $("#listmarks").data("kendoComboBox").dataSource.read();
+        $("#window_mark").data("kendoWindow").center().open();
+
+    }
+
+    function ShowAnswerForm(item_id) {
+        id_for_answer = item_id;
+        var AnswerDescription;
+        var DS = $("#grid_message").data("kendoGrid").dataSource;
+
+        DS.data().forEach(function (value) {
+            if (value.Id == item_id) {
+                AnswerDescription = value.AnswerDescription;
+            }
+        });
+
+
+
+        $("#editor_answer").val(AnswerDescription);
+        $("#window_answer").data("kendoWindow").center().open();
+
+    }
+    function onClickButtAnswerOk() {
+
+        var answer = $("#editor_answer").val();
+        var send_data = {
+            AnswerDescription: answer,
+            Answered: true,
+            AnsweredUserId: user_id
+        };
+
+        $.ajax({
+            url: "https://" + host + "/complaints/api/appeals/PutAppealAlter?Id=" + id_for_answer,
+            type: "PUT",
+            contentType: "application/json",
+            data: JSON.stringify(send_data),
+            success: function (data) {
+
+                $("#window_answer").data("kendoWindow").center().close();
+                $("#grid_message").data("kendoGrid").dataSource.read();
+
+            }
+        });
+
+
+    }
+
+    function onClickButtOk() {
+
+        var Date = $("#datepicker").val();
+        var Description = $("#editor").val();
+        var DepId = $("#subdivision").val();
+        var ClassId = $("#classes").val();
+        var TypeId = $("#type").val();
+        var SourceId = $("#source").val();
+
+        var FirstName = $("#FirstName").val();
+        var LastName = $("#LastName").val();
+        var email = $("#email_emp").val();
+        var phone = $("#phone_emp").val();
+
+
+
+        if (appeals_id == -1) {
+            var send_data = {
+                Description: Description,
+                Date: Date,
+                DepId: DepId,
+                ClassId: ClassId,
+                TypeId: TypeId,
+                SourceId: SourceId,
+                FirstName: FirstName,
+                LastName: LastName,
+                Email: email,
+                PhoneNumber: phone,
+                GuestId: 'NewGuest'
+            };
+
+
+
+            $.ajax({
+                url: "https://" + host + "/complaints/api/appeals/PostappealAlter",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(send_data),
+                success: function (data) {
+
+                    $("#window").data("kendoWindow").center().close();
+                    $("#grid_message").data("kendoGrid").dataSource.sort({ field: "Id", dir: "desc" });
+                    $("#grid_message").data("kendoGrid").dataSource.read();
+
+
+                }
+            });
+        }
+
+        else {
+            var send_data = {
+                Description: Description,
+                Date: Date,
+                DepId: DepId,
+                ClassId: ClassId,
+                TypeId: TypeId,
+                SourceId: SourceId,
+                FirstName: FirstName,
+                LastName: LastName,
+                Email: email,
+                PhoneNumber: phone,
+                GuestId: guest_id
+            };
+
+            $.ajax({
+                url: "https://" + host + "/complaints/api/appeals/PutAppealAlter?id=" + appeals_id,
+                type: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify(send_data),
+                success: function (data) {
+
+                    $("#window").data("kendoWindow").center().close();
+                    $("#grid_message").data("kendoGrid").dataSource.read();
+
+
+                }
+            });
+        }
+
+
+
+        $("#grid_message").data("kendoGrid").refresh();
+    }
+
+    function onClickButtClose() {
+        if (confirm('Вы действительно хотите отменить?')) {
+            $("#window").data("kendoWindow").center().close();
+        }
+        else {
+
+        }
+
+
+    }
+
+    function onClickButt(e) {
+        appeals_id = -1;
+        var todayDate = kendo.toString(kendo.parseDate(new Date()), 'dd/MM/yyyy');
+        $("#datepicker").data("kendoDatePicker").value(todayDate);
+        $("#subdivision").data("kendoComboBox").value("");
+        $("#classes").data("kendoComboBox").value("");
+        $("#type").data("kendoComboBox").value("");
+        $("#source").data("kendoComboBox").value("");
+
+        $("#FirstName").val("");
+        $("#LastName").val("");
+        $("#email_emp").val("");
+        $("#phone_emp").val("");
+        $("#editor").val("");
+
+        $("#window").data("kendoWindow").title("Добавить новую жалобу");
+
+        $("#window").data("kendoWindow").center().open();
+    }
+    function onRefresh_grid() {
+        $("#grid_message").data("kendoGrid").dataSource.read();
+    }
+
+
+    function detailInit(e) {
+        var detailRow = e.detailRow;
+
+        Users.forEach(function (item) {
+
+            if (item.value == e.data.AnsweredUserId) {
+                detailRow.find(".user").text(item.text);
+
+            }
+
+        })
+
+
+    }
+
+    function SelectColor(e) {
+        e.value;
+    }
+    function SelectMark(e) {
+
+        if (e.dataItem) {
+            var dataItem = e.dataItem;
+            $("#colorbox").css("background", toColor(dataItem.color));
+        }
+
+    }
+    function ShowGrid() {
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: "https://" + host + "/complaints/api/info/getappeals?FStartDate=" + StartDate + "&FEndDate=" + EndDate,
+                cache: false
+            },
+            pageSize: 10
+
+        });
+
+        var height = $(window).height() - 180;
+
+        Grid_message = $("#grid_message").kendoGrid({
+
+            dataSource: {
+                transport: {
+                    read: "https://" + host + "/complaints/api/info/getappeals?FStartDate=" + StartDate + "&FEndDate=" + EndDate,
+                    cache: false
+                },
+                pageSize: 10,
+                sort: { field: "Date", dir: "desc" }
+            },
+
+
+            editable: false,
+            height: height,
+            groupable: false,
+            sortable: {
+                initialDirection: "desc"
+            },
+            filterable: true,
+            resizable: true,
+            navigatable: true,
+            pageable: {
+                refresh: true,
+                pageSizes: true,
+                buttonCount: 5
+            },
+            columns: [{
+                field: "Id",
+                title: "Id",
+
+
+            }, {
+                field: "Date",
+                title: "Дата",
+
+                minResizableWidth: 80,
+                sortable: {
+                    initialDirection: "desc"
+                },
+                template: "#= kendo.toString(kendo.parseDate(Date, 'yyyy-MM-dd'), 'dd/MM/yyyy') #"
+            }, {
+                field: "Text",
+                title: "Отзывы гостей",
+                width: 340,
+                minResizableWidth: 80
+            }, {
+                field: "MarkId",
+                title: "Метка",
+
+                minResizableWidth: 85,
+                template: function (dataItem) {
+
+                    if (typeof (window.Marks[dataItem.MarkId]) != "undefined" && dataItem.MarkId != 0) {
+                        var color = toColor(Marks[dataItem.MarkId].color);
+                        return "<button style='width: 50px; min-width: 20px; background-color: " + color + "' class='k-primary k-button'; onclick='ShowMarkForm(" + dataItem.Id + "," + dataItem.MarkId + "," + Marks[dataItem.MarkId].color + ")'>+</button>"
+                    }
+                    else {
+                        return "<button style='width:50px; min-width:20px;' class='k-primary k-button'; onclick='ShowMarkForm(" + dataItem.Id + ")'>+</button>"
+                    }
+
+                }
+            }, {
+                field: "DepId",
+                title: "Подразделение",
+                values: DepartmentList,
+
+                minResizableWidth: 80
+            }, {
+                field: "ClassId",
+                title: "Рубрика",
+                values: ClassList,
+
+                minResizableWidth: 80
+            }, {
+                field: "TypeId",
+                title: "Настроение",
+                values: TypeList,
+
+                minResizableWidth: 80
+            }, {
+                field: "AIScore",
+                title: "ИИ",
+
+                minResizableWidth: 80
+            }, {
+                field: "SourceId",
+                title: "Источник",
+                values: SourceList,
+
+                minResizableWidth: 80
+            }, {
+                field: "Guest",
+                title: "Имя гостя",
+
+                minResizableWidth: 80,
+                template: function (dataItem) {
+                    if (dataItem.Guest != null) {
+                        return dataItem.Guest.FirstName + " " + dataItem.Guest.LastName;
+                    }
+                    else {
+                        return "Нет клиента";
+                    }
+
+                }
+            }, {
+                field: "Answered",
+                title: "Реакция управляющего",
+                width: 120,
+                minResizableWidth: 80,
+                template: function (dataItem) {
+                    if (dataItem.Answered == true) {
+                        return "<button class='k-primary k-button'; onclick='ShowAnswerForm(" + dataItem.Id + ")'>Исправить</button>";
+                    }
+                    else {
+                        return "<button class='k-primary k-button'; onclick='ShowAnswerForm(" + dataItem.Id + ")'>Ответить</button>";
+                    }
+
+                }
+
+            }, {
+                field: "Editing",
+                title: "",
+                width: 120,
+                minResizableWidth: 80,
+                template: function (dataItem) {
+
+                    if (RoleUser.AvailableFunction.Appeals) {
+                        if (dataItem.Guest == null) {
+                            return "<button class='k-primary k-button'; onclick='EditAppeals(" + dataItem.Id + ",-1)'>Редактировать</button><button class='k-primary k-button'; onclick='DeleteAppeals(" + dataItem.Id + ")'>Удалить</button>";
+                        }
+                        else {
+                            return "<button class='k-primary k-button'; onclick='EditAppeals(" + dataItem.Id + "," + dataItem.Guest.GuestId + ")'>Редактировать</button><button class='k-primary k-button'; onclick='DeleteAppeals(" + dataItem.Id + ")'>Удалить</button>";
+                        }
+
+                    }
+                    else {
+                        return "";
+                    }
+
+
+
+                }
+
+            }
+            ],
+            detailTemplate: kendo.template($("#detail-template").html()),
+            detailInit: detailInit,
+            dataBound: function (e) {
+                var grid = e.sender;
+
+                grid.tbody.find("tr.k-master-row").click(function (e) {
+                    var target = $(e.target);
+                    if ((target.hasClass("k-i-expand")) || (target.hasClass("k-i-collapse"))) {
+                        return;
+                    }
+
+                    var row = target.closest("tr.k-master-row");
+                    var icon = row.find(".k-i-expand");
+
+                    if (icon.length) {
+                        grid.expandRow(row);
+                    } else {
+                        grid.collapseRow(row);
+                    }
+                })
+
+                $('#ExpandCollapseButton').text("Развернуть");
+                Expand = false;
+
+            },
+            sort: function (e) {
+                $('#ExpandCollapseButton').text("Развернуть");
+                Expand = false;
+            },
+            filter: function (e) {
+                $('#ExpandCollapseButton').text("Развернуть");
+                Expand = false;
+            }
+        });
+
+
+
+
+        $("#datepicker").kendoDatePicker({ format: "dd/MM/yyyy" });
+        $("#subdivision").kendoComboBox({
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: DepartmentList
+        });
+        $("#classes").kendoComboBox({
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: ClassList
+        });
+        $("#type").kendoComboBox({
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: TypeList
+        });
+
+
+        $("#source").kendoComboBox({
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: SourceList
+        });
+
+
+        $("#okButton").kendoButton({
+            click: onClickButtOk
+        });
+        $("#closeButton").kendoButton({
+            click: onClickButtClose
+        });
+
+        var myWindow = $("#window");
+        myWindow.kendoWindow({
+            width: "570px",
+            height: "690px",
+            title: "Добавить новую жалобу",
+            visible: false,
+            open: adjustSize,
+            actions: [
+                "Close"
+            ]
+        });
+
+
+
+        $("#okButton_answer").kendoButton({
+            click: onClickButtAnswerOk
+        });
+
+
+
+        var myWindow_answer = $("#window_answer");
+        myWindow_answer.kendoWindow({
+            width: "600px",
+            height: "450px",
+            title: "Добавить ответ",
+            visible: false,
+            open: adjustSize,
+            actions: [
+                "Pin",
+                "Minimize",
+                "Maximize",
+                "Close"
+            ]
+        });
+
+        $("#picker").kendoColorPicker({
+            value: "#ffffff",
+            buttons: false,
+            select: SelectColor,
+            palette: [
+                "#ffffff", "#000000", "#eeece1", "#1f497d", "#4f81bd", "#c0504d", "#9bbb59", "#8064a2", "#8064a2", "#f79646",
+                "#f2f2f2", "#7f7f7f", "#ddd9c3", "#c6d9f0", "#dbe5f1", "#f2dcdb", "#ebf1dd", "#e5e0ec", "#dbeef3", "#fdeada",
+                "#d8d8d8", "#595959", "#c4bd97", "#8db3e2", "#b8cce4", "#e5b9b7", "#d7e3bc", "#ccc1d9", "#b7dde8", "#fbd5b5",
+                "#bfbfbf", "#3f3f3f", "#938953", "#548dd4", "#95b3d7", "#d99694", "#c3d69b", "#b2a2c7", "#92cddc", "#fac08f",
+                "#a5a5a5", "#262626", "#494429", "#17365d", "#366092", "#953734", "#76923c", "#5f497a", "#31859b", "#e36c09",
+                "#7f7f7f", "#0c0c0c", "#1d1b10", "#0f243e", "#244061", "#632423", "#4f6128", "#3f3151", "#205867", "#974806"
+            ]
+        });
+
+        $("#listmarks").kendoComboBox({
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: ListMarks,
+            select: SelectMark
+        });
+
+        var myWindow_mark = $("#window_mark");
+        myWindow_mark.kendoWindow({
+            width: "380px",
+            height: "180px",
+            title: "Добавить метку",
+            visible: false,
+            actions: [
+                "Close"
+            ]
+        });
+
+
+        $("#okButton_mark").kendoButton({
+            click: onButtonMark
+        });
+
+
+
+
+        $("#subdivisionsanpin").kendoComboBox({
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: DepartmentList,
+            change: onChangeSanPinDivision
+        });
+
+
+
+
+
+    }
+
+    var guest_id;
+    function EditAppeals(item_id, guestid) {
+        if (guestid == -1) {
+            guest_id = 'NewGuest';
+        }
+        else {
+            guest_id = guestid;
+        }
+
+        appeals_id = item_id;
+        var data = $("#grid_message").data("kendoGrid").dataSource.data();
+
+        data.forEach(function (item) {
+
+            if (item.Id == item_id) {
+
+                item.Date;
+                $("#datepicker").data("kendoDatePicker").value(item.Date);
+                $("#subdivision").data("kendoComboBox").value(item.DepId);
+                $("#classes").data("kendoComboBox").value(item.ClassId);
+                $("#type").data("kendoComboBox").value(item.TypeId);
+                $("#source").data("kendoComboBox").value(item.SourceId);
+
+                if (guestid != -1) {
+                    $("#FirstName").val(item.Guest.FirstName);
+                    $("#LastName").val(item.Guest.LastName);
+                    $("#email_emp").val(item.Guest.Email);
+                    $("#phone_emp").val(item.Guest.PhoneNumber);
+                }
+
+
+                $("#editor").val(item.Text);
+            }
+
+
+        });
+
+
+        $("#window").data("kendoWindow").title("Редактировать");
+        $("#window").data("kendoWindow").center().open();
+
+
+
+    }
+
+    function DeleteAppeals(item_id) {
+        if (confirm("Удалить отзыв?")) {
+
+            $.ajax({
+                url: "https://" + host + "/complaints/api/appeals/deleteappeal?id=" + item_id,
+                global: false,
+                type: "DELETE",
+                success: function (data) {
+
+
+                    $("#grid_message").data("kendoGrid").dataSource.read();
+
+
+                }
+            });
+
+        }
+
+    }
+
+
+
+
+    function ClickAddMark(val) {
+        if (val) {
+            $("#addmark").css("display", "block");
+            $("#selectmark").css("display", "none");
+            newMark = true;
+        }
+        else {
+            $("#addmark").css("display", "none");
+            $("#selectmark").css("display", "block");
+            newMark = false;
+        }
+    }
+
+    function onButtonMark() {
+
+
+        var url;
+        if (!newMark) {
+            var MarkId = $("#listmarks").data("kendoComboBox").value();
+            url = "https://" + host + "/complaints/api/appeals/putappeal?Id=" + id_feedback + "&MarkId=" + MarkId;
+        }
+        else {
+            var MarkText = $("#editor_mark").val();
+            var MarkColor = $("#picker").data("kendoColorPicker").value();
+            MarkColor = HEXToVBColor(MarkColor);
+            url = "https://" + host + "/complaints/api/appeals/putappeal?Id=" + id_feedback + "&MarkId=NewMark&MarkText=" + MarkText + "&MarkColor=" + MarkColor;
+        }
+
+
+
+
+
+        $.ajax({
+            url: url,
+            type: "PUT",
+
+            success: function (data) {
+
+                $.ajax({
+                    url: "https://" + host + "/complaints/api/info/getmarks",
+                    global: false,
+                    type: "GET",
+                    success: function (data) {
+                        if (typeof (data) == "object") {
+
+                            Marks.length = 0;
+                            ListMarks.length = 0;
+                            data.forEach(function (item) {
+                                var ddt = new Object();
+                                ddt.value = item.MarkId;
+                                ddt.text = item.MarkText;
+                                ddt.color = item.MarkColor;
+                                Marks[item.MarkId] = ddt;
+                                ListMarks.push(ddt);
+                            });
+
+
+                        } else {
+                            onExit();
+                        }
+                    }
+                });
+
+
+
+                $("#window_mark").data("kendoWindow").center().close();
+                $("#grid_message").data("kendoGrid").dataSource.read();
+
+            }
+        });
+
+
+    }
+    function OkButtonFilter() {
+
+
+
+        StartDate = $("#datepickerstart").val();
+        EndDate = $("#datepickerend").val();
+        $("#window_filter").data("kendoWindow").center().close();
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: "https://" + host + "/complaints/api/info/getappeals?FStartDate=" + StartDate + "&FEndDate=" + EndDate,
+                cache: false
+            },
+            pageSize: 10,
+            sort: { field: "Date", dir: "desc" }
+
+        });
+
+
+        $("#filter_feedback").css("display", "inline");
+        $("#filter_date").html("C: " + StartDate + " По: " + EndDate);
+
+        var message_grid = $("#grid_message").data("kendoGrid");
+        message_grid.setDataSource(dataSource);
+        message_grid.dataSource.read();
+    }
+
+
+    function HEXToVBColor(rrggbb) {
+        var str = rrggbb.substr(1, 6);
+        return parseInt(str, 16);
+    }
+
+    function toColor(num) {
+        var hex = "#" + num.toString(16);
+        return hex;
+    }
+
+    function ChangeText() {
+        var txt = $("#editor").val();
+        if (txt.length > 3000) {
+            alert("Вы привысили допустимое количество символов!");
+        }
+
+    }
+
+
+
+
+
+</script>
+
+
+<script>
+    //-----------------------------------------------------------------------
+
+    var DivisionId;
+    var CheckListId;
+    var CurentQuestionGroup = 0;
+
+    var Data;
+
+
+    function isInArray(date, dates) {
+        for (var idx = 0, length = dates.length; idx < length; idx++) {
+            var d = dates[idx];
+            if (date.getFullYear() == d.getFullYear() &&
+                date.getMonth() == d.getMonth() &&
+                date.getDate() == d.getDate()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    var listDateOfAnswer;
+    function GenerateDatePikerSAnPin(listDate) {
+        listDateOfAnswer = listDate;
+        var datepicker = $("#datesanpin").data("kendoDatePicker");
+
+        var selectdate = [];
+        listDate.forEach(function (item) {
+
+            selectdate.push(new Date(item.Date));
+        })
+
+        datepicker.setOptions({
+            dates: selectdate
+        });
+
+    }
+
+    $(document).ready(function () {
+
+
+        var today = new Date();
+        $("#datesanpin").kendoDatePicker({
+            format: "dd/MM/yyyy",
+            value: today,
+            //change: onChangeDateChekList,
+            close: onSelectDateChekList,
+            month: {
+                // template for dates in month view
+                content: '# if (isInArray(data.date, data.dates)) { #' + '<div class="selectday">' + '#= data.value #' + '</div>' + '# } else { #' + '#= data.value #' + '# } #'
+            }
+        });
+
+        $("#numdocsanpin").kendoComboBox({
+            dataTextField: "text",
+            dataValueField: "value"
+        });
+
+    });
+
+    function GenerateData(dateStrForced) {
+
+        var DateSanPin = dateStrForced != null ? dateStrForced : kendo.toString(kendo.parseDate($("#datesanpin").data("kendoDatePicker").value()), 'yyyyMMdd');
+
+        var NumDocSP = $("#numdocsanpin").val();
+
+        $.ajax({
+            url: "https://" + host + "/complaints/api/checklist/GetCheckListForInspection?id=" + CheckListId + "&DepId=" + DivisionId + "&Date=" + DateSanPin + "&DocNumStr=" + NumDocSP,
+            global: false,
+            type: "GET",
+            success: function (data) {
+
+                if (typeof (data) == "object") {
+
+                    var CheckList = new Object();
+                    CheckList.CheckListActive = data.CheckList.CheckListActive;
+                    CheckList.CheckListId = data.CheckList.CheckListId;
+                    CheckList.CheckListName = data.CheckList.CheckListName;
+                    CheckList.MultiSelect = data.CheckList.CheckListMultiCheck;
+                    CheckList.DocNumMode = data.CheckList.CheckListDocNumMode;
+                    CheckList.AnswerUnitCollection = [];
+                    CheckList.DocNumDesc = data.DocNumDesc;
+                    CheckList.DocNumStr = data.DocNumStr;
+
+                    var ListGroupQuestions = [];
+                    data.QuestionGroupContent.forEach(function (item) {
+
+                        var GroupQuestion = new Object();
+                        GroupQuestion.QuestionGroupId = item.QuestionGroup.QuestionGroupId;
+                        GroupQuestion.QuestionGroupName = item.QuestionGroup.QuestionGroupName;
+                        GroupQuestion.CommentIsAvailable = item.CommentIsAvailable;
+                        GroupQuestion.AttachmentIsAvailable = item.AttachmentIsAvailable;
+                        GroupQuestion.Coment = item.Coment;
+
+                        GroupQuestion.Attachments = item.Attachments;
+
+                        var Questions = item.Questions;
+                        var Data = [];
+                        var ListAnswer = [];
+                        var ListAnswerScheme1 = [];
+
+                        Questions.forEach(function (itm) {
+
+                            var item = new Object();
+                            item.QuestionId = itm.QuestionId;
+                            item.QuestionText = itm.QuestionText;
+                            item.AnswerSchemeId = itm.QuestionAnswerSchemeContent.AnswerScheme.AnswerSchemeId;
+                            item.AnswerIdArray = [];
+
+                            ListAnswer = [];
+                            if (item.AnswerSchemeId == 1)
+                                ListAnswerScheme1 = [];
+
+                            itm.QuestionAnswerSchemeContent.AnswerUnits.forEach(function (item_) {
+
+                                //if (ListAnswer.filter(_ans => _ans.AnswerUnitId == item_.AnswerUnitId).length == 0)
+                                //    ListAnswer.push(item_);
+
+                                if (CheckList.AnswerUnitCollection.filter(_ans => _ans.AnswerUnitId == item_.AnswerUnitId).length == 0)
+                                    CheckList.AnswerUnitCollection.push(item_)
+
+                                ListAnswer.push(item_);
+
+                                if (item.AnswerSchemeId == 1)
+                                    ListAnswerScheme1.push(item_);
+
+
+                                if (item_.AnswerUnitSelected == true) {
+                                    item.AnswerIdArray.push(item_.AnswerUnitId);
+                                }
+                            });
+
+
+                            Data.push(item);
+
+                        });
+
+                        GroupQuestion.ListAnswer = ListAnswerScheme1.length > 0 ? ListAnswerScheme1 : ListAnswer;
+                        GroupQuestion.ListAnswer.sort(function (a, b) {
+                            return (a.AnswerUnitId != 3 ? (a.AnswerUnitScore == 1 ? 1 : 2) : 3)
+                                - (b.AnswerUnitId != 3 ? (b.AnswerUnitScore == 1 ? 1 : 2) : 3);
+                        });
+                        GroupQuestion.Questions = Data;
+                        ListGroupQuestions.push(GroupQuestion);
+
+                    });
+
+
+                    Data = new Object();
+                    Data.CheckList = CheckList;
+                    Data.QuestionGroupContent = ListGroupQuestions;
+
+
+                    StartQuestion();
+
+                } else {
+                    onExit();
+                }
+            },
+            error: function (jqXHR, exception) {
+                getErrorMessage(jqXHR, exception);
+            }
+        });
+
+    }
+
+    function getErrorMessage(jqXHR, exception) {
+        var msg = '';
+        if (jqXHR.status === 0) {
+            msg = 'Not connect.\n Verify Network.';
+        } else if (jqXHR.status == 404) {
+            msg = 'Requested page not found. [404]';
+        } else if (jqXHR.status == 500) {
+            msg = 'Internal Server Error [500].';
+        } else if (exception === 'parsererror') {
+            msg = 'Requested JSON parse failed.';
+        } else if (exception === 'timeout') {
+            msg = 'Time out error.';
+        } else if (exception === 'abort') {
+            msg = 'Ajax request aborted.';
+        } else {
+            msg = 'Uncaught Error.\n' + jqXHR.responseText;
+        }
+        alert('error; ' + msg);
+    }
+    /*
+    function GetIndexAnswer(idGroupQuestion,AnswerId)
+    {
+        for(var i=0; i< Data.QuestionGroupContent[idGroupQuestion].ListAnswer.length; i++)
+        {
+            if(Data.QuestionGroupContent[idGroupQuestion].ListAnswer[i].AnswerUnitId == AnswerId)
+            {
+                return i;
+            }
+
+        }
+    }
+    */
+    function GetAnsverIdOfIndex(idGroupQuestion, AnswerIndex) {
+        return Data.QuestionGroupContent[idGroupQuestion].ListAnswer[AnswerIndex].AnswerUnitId;
+    }
+
+    function QuestionsView(idGroupQuestion) {
+
+        switch (Data.CheckList.DocNumMode) {
+            case 1:
+                $("#numdocsp_input").show();
+                $("#numdocsp_input").val($("#numdocsanpin").val());
+                $('#numdocsp_input').attr("placeholder", "Номер документа...");
+                $("#numdocsp_select_button").hide();
+                $("#numdoc_desc").hide();
+
+                break;
+            case 2:
+                $("#numdocsp_input").show();
+                $("#numdocsp_input").val($("#numdocsanpin").val());
+                $('#numdocsp_input').attr("placeholder", "Баркод блюда...");
+                $("#numdocsp_select_button").show();
+                $("#menu_select_button").show();
+                $("#numdoc_desc").show();
+
+                break;
+            default:
+                $("#numdocsp_input").hide();
+                $('#numdocsp_input').attr("placeholder", "Номер документа...");
+                $("#numdocsp_input").val("");
+                $("#numdocsp_select_button").hide();
+                $("#numdoc_desc").hide();
+
+                break;
+        }
+
+        $("#numdoc_desc").val(Data.CheckList.DocNumDesc != null ? Data.CheckList.DocNumDesc : "")
+
+        var table = $('<table id="tableq"></table>').addClass('table table-hover table-bordered tablequest');
+        var col1 = $('<col></col>').addClass('col1');
+        table.append(col1);
+        var thead = $('<thead ></thead >').addClass('thead-light');
+        var row = $('<tr></tr>');
+
+
+        if (Data.QuestionGroupContent[idGroupQuestion].ListAnswer != undefined) {
+
+            var col = $('<th></th>').text("Название вопроса");
+            row.append(col);
+
+            for (i = 0; i < Data.QuestionGroupContent[idGroupQuestion].ListAnswer.length; i++) {
+                var col = $('<th style="text-align: center; overflow: hidden; text-overflow: ellipsis;"></th>').text(Data.QuestionGroupContent[idGroupQuestion].ListAnswer[i].AnswerUnitText);
+                row.append(col);
+            }
+        }
+        else {
+            var col = $('<th colspan="1"></th>').text("Название вопроса");
+            row.append(col);
+        }
+
+
+
+        thead.append(row);
+        table.append(thead);
+
+        var ItemQuestion = Data.QuestionGroupContent[idGroupQuestion];
+
+
+        $('#QuestionGroup').text(ItemQuestion.QuestionGroupName);
+
+
+        var listQuestion = ItemQuestion.Questions;
+        for (var i = 0; i < listQuestion.length; i++) {
+
+
+            var row = $('<tr></tr>');
+
+            var col = $('<td ></td>').text(listQuestion[i].QuestionText);
+            row.append(col);
+
+            var ListAnswer = ItemQuestion.ListAnswer;
+
+            for (j = 0; j < ListAnswer.length; j++) {
+                var selected = listQuestion[i].AnswerIdArray.includes(ListAnswer[j].AnswerUnitId);
+                if (!selected && ListAnswer[j].AnswerUnitId != 3) {
+                    var scoreUnits = Data.CheckList.AnswerUnitCollection.filter(_ans => _ans.AnswerUnitScore == ListAnswer[j].AnswerUnitScore && _ans.AnswerUnitId != 3);
+
+                    scoreUnits.forEach(function (item) {
+                        if (listQuestion[i].AnswerIdArray.includes(item.AnswerUnitId))
+                            selected = true;
+                    })
+                }
+                if (selected) {
+                    if (Data.CheckList.MultiSelect) {
+                        var col = $('<td align="center"></td>').html("<input class='checkbox_t'  onclick='SelectQuestion(" + idGroupQuestion + "," + i + "," + j + ",this.checked)' name='quest" + i + "' type='checkbox' checked='checked' value='" + j + "'>");
+                    }
+                    else {
+                        var col = $('<td align="center"></td>').html("<input  onclick='SelectQuestion(" + idGroupQuestion + "," + i + "," + j + ",this.checked)' name='quest" + i + "' type='radio' checked='checked' value='" + j + "'>");
+                    }
+
+                }
+                else {
+                    if (Data.CheckList.MultiSelect) {
+                        var col = $('<td align="center"></td>').html("<input class='checkbox_t' onclick='SelectQuestion(" + idGroupQuestion + "," + i + "," + j + ",this.checked)' name='quest" + i + "' type='checkbox'  value='" + j + "'>");
+                    }
+                    else {
+                        var col = $('<td align="center"></td>').html("<input  onclick='SelectQuestion(" + idGroupQuestion + "," + i + "," + j + ",this.checked)' name='quest" + i + "' type='radio'  value='" + j + "'>");
+                    }
+
+                }
+
+                row.append(col);
+            }
+
+            table.append(row);
+
+        }
+        var count_coll = 1;
+        if (ItemQuestion.ListAnswer != undefined) {
+            var count_coll = ItemQuestion.ListAnswer.length + 1;
+        }
+
+        if (ItemQuestion.AttachmentIsAvailable) {
+            var Attachments = "";
+            if (ItemQuestion.Attachments != null && ItemQuestion.Attachments.length > 0)
+                for (var iAtt = 0; iAtt < ItemQuestion.Attachments.length; iAtt++) {
+                    var rndStr = String(performance.now());
+                    Attachments += "<img src='" + ItemQuestion.Attachments[iAtt] + "?" + rndStr + "' class='photoPreviewEdit' onclick='ShowPhoto(\x22" + ItemQuestion.Attachments[iAtt] + "?" + rndStr + "\x22, true)'/>";
+                    // Поздняя подгрузка изображений
+                    //Attachments += "<img alt='" + ItemQuestion.Attachments[iAtt] + "?" + rndStr + "' class='photoPreviewEdit' onclick='ShowPhoto(\x22" + ItemQuestion.Attachments[iAtt] + "?" + rndStr + "\x22, true)'/>";
+                }
+
+            var row = $('<tr></tr>').html("<td colspan='" + count_coll + "'><div><span style='margin-top:4px'>Фото:</span><span id='sanpin_photo_docnum_alert' style='margin-left:17px;display:none;color:red;font-weight:700'>Введите номер документа/баркод</span></div>"
+                + "<div style='border:solid 3px transparent;width:100%;height:108px;padding:7px' id='sanpin_photo_drop_area'>"
+                + Attachments
+                + "<button id='sanpin_photo_add_button' style='width: 100px;margin-top:14px;margin-left:7px;vertical-align:top' class='k-button' title='Нажмите или перетащите фотографию'>Добавить фото</button>"
+                + "<input style='display:none' id='sanpin_photo_add_input' type='file' multiple accept='image/*'>"
+                + "</div></td>");
+            table.append(row);
+        }
+
+        var row = $('<tr></tr>').html("<td colspan='" + count_coll + "'><span style='margin-top:4px'>Комментарий:</span> <textarea rows='5'  id='coment_" + idGroupQuestion + "' onchange='AddComent(" + idGroupQuestion + ")' class='coment' name='coment" + i + "' value = '' " + (!ItemQuestion.CommentIsAvailable ? "disabled='true'" : "") + ">" + ItemQuestion.Coment + "</textarea> </td>");
+        table.append(row);
+
+        $('#question_box').append(table);
+
+        if (ItemQuestion.AttachmentIsAvailable) {
+            var dropArea = document.getElementById("sanpin_photo_drop_area");
+            dropArea.addEventListener("drop", dropSanpinPhoto);
+            dropArea.addEventListener("dragover", dragoverSanpinPhoto);
+            dropArea.addEventListener("dragleave", dragleaveSanpinPhoto);
+
+            $('#sanpin_photo_add_button').click(function () {
+                if (String($('#numdocsp_input').val()).replace(" ", "") == "") {
+                    alert("Введите номер документа/баркод")
+                    return;
+                }
+                $('#sanpin_photo_add_input').click()
+            });
+
+            $("#sanpin_photo_add_input").change(function () {
+                if (window.FormData === undefined) {
+                    alert('В вашем браузере FormData не поддерживается')
+                } else {
+                    uploadSanpinPhoto($("#sanpin_photo_add_input")[0].files);
+                }
+            });
+        }
+
+        //// Поздняя подгрузка изображений
+        //$(".photoPreviewEdit").each(function () {
+        //    var alt = $(this).attr("alt");
+        //    var src = $(this).attr("src");
+        //    if (alt != null && src == null) {
+        //        $(this).attr("src", alt);
+        //        $(this).attr("alt", src);
+        //    }
+        //})
+
+    }
+
+
+    function uploadSanpinPhoto(files) {
+        if (files.length == 0)
+            return;
+
+        var formData = new FormData();
+        $.each(files, function (key, input) {
+            formData.append('file[]', input);
+        });
+
+        var DateSanPin = kendo.toString(kendo.parseDate($("#datesanpin").data("kendoDatePicker").value()), 'yyyyMMdd');
+        var NumDocSP = $("#numdocsp_input").val();
+
+        formData.append('FDate', DateSanPin);
+        formData.append('Dep', DivisionId);
+        formData.append('DocNum', NumDocSP);
+        formData.append('ReportId', CheckListId);
+        formData.append('GroupId', CurentQuestionGroup);
+
+        $.ajax({
+            type: "POST",
+            url: "https://" + host + "/complaints/api/checklist/UploadAttachment",
+            cache: false,
+            contentType: false,
+            processData: false,
+            data: formData,
+            dataType: 'json',
+            success: function (data) {
+                if (data.length > 0) {
+                    $("#numdocsp_input").prop("disabled", true);
+                }
+                data.forEach(function (src) {
+                    var rndStr = String(performance.now());
+                    ($("<img src='" + src + "?" + rndStr + "' class='photoPreviewEdit' onclick='ShowPhoto(\x22" + src + "?" + rndStr + "\x22, true)'/>")).insertBefore("#sanpin_photo_add_button")
+                    if (Data.QuestionGroupContent[CurentQuestionGroup].Attachments == null)
+                        Data.QuestionGroupContent[CurentQuestionGroup].Attachments = []
+                    Data.QuestionGroupContent[CurentQuestionGroup].Attachments.push(src)
+                });
+            },
+            error: function (data) {
+                alert("Ошибка при загрузке файлов")
+            }
+        });
+    }
+
+    function dropSanpinPhoto(e) {
+        e.preventDefault();
+        if (String($('#numdocsp_input').val()).replace(" ", "") == "") {
+            alert("Введите номер документа/баркод")
+            hideSanpinPhotoAreaDash();
+            return;
+        }
+        uploadSanpinPhoto(e.dataTransfer.files);
+        hideSanpinPhotoAreaDash();
+    }
+
+    function dragoverSanpinPhoto(e) {
+        if (String($('#numdocsp_input').val()).replace(" ", "") == "") {
+            $("#sanpin_photo_drop_area").css("border", "solid 3px red");
+            $("#sanpin_photo_docnum_alert").css("display", "inline-block");
+        }
+        else {
+            $("#sanpin_photo_drop_area").css("border", "dashed 3px orange");
+            $("#sanpin_photo_docnum_alert").css("display", "none");
+        }
+        $("#sanpin_photo_add_button").addClass("k-primary");
+        e.preventDefault();
+    }
+
+    function dragleaveSanpinPhoto(e) {
+        hideSanpinPhotoAreaDash();
+        e.preventDefault();
+    }
+
+    function hideSanpinPhotoAreaDash() {
+        $("#sanpin_photo_drop_area").css("border", "solid 3px transparent");
+        $("#sanpin_photo_add_button").removeClass("k-primary");
+        $("#sanpin_photo_docnum_alert").css("display", "none");
+    }
+
+    function AddComent(id) {
+        Data.QuestionGroupContent[id].Coment = $("#coment_" + id).val();
+    }
+    function SelectQuestion(idGroupQuestion, idQuestion, indexAnswer, checked) {
+        var check = checked;
+        var idAnswer = GetAnsverIdOfIndex(idGroupQuestion, indexAnswer);
+
+        if (!Data.CheckList.MultiSelect) {
+            Data.QuestionGroupContent[idGroupQuestion].Questions[idQuestion].AnswerIdArray = [];
+        }
+
+        if (check) {
+            Data.QuestionGroupContent[idGroupQuestion].Questions[idQuestion].AnswerIdArray.push(idAnswer);
+        }
+        else {
+            var idx = Data.QuestionGroupContent[idGroupQuestion].Questions[idQuestion].AnswerIdArray.indexOf(idAnswer);
+            if (idx != -1) {
+                Data.QuestionGroupContent[idGroupQuestion].Questions[idQuestion].AnswerIdArray.splice(idx, 1);
+            }
+        }
+
+
+    }
+
+    function QuestionsPrev() {
+        if (CurentQuestionGroup < 1) {
+            return;
+        }
+
+        $("#tableq").remove();
+        CurentQuestionGroup--;
+        QuestionsView(CurentQuestionGroup);
+
+
+        $('#buttons').remove();
+        $('.navigation_butt').remove();
+
+
+        if (CurentQuestionGroup == Data.QuestionGroupContent.length - 1) {
+            if (Data.CheckList.DocNumMode == 2) {
+                var buttonAgain = $('<div class="navigation_butt" style="display: inline-block; width: 180px;"><button class="btn btn-success" id="buttons" onclick="QuestionsEnd(true)">Ещё одно блюдо</button></div>');
+                $("#footer").append(buttonAgain);
+            }
+            var button = $('<div class="navigation_butt" style="display: inline-block"><button class="btn btn-success" id="buttons" onclick="QuestionsEnd()">Завершить</button></div>');
+            $("#footer").append(button);
+        }
+        else {
+            var button_prev = $('<div class="navigation_butt" style="display: inline-block; width: 200px;"><button class="btn btn-success" id="buttons" onclick="QuestionsPrev()" >Предыдущий</button></div>');
+            $("#footer").append(button_prev);
+            var button = $('<div class="navigation_butt" style="display: inline-block"><button class="btn btn-success"  id="buttons" onclick="QuestionsNext()">Следующий</button></div>');
+            $("#footer").append(button);
+
+        }
+
+
+    }
+
+    function CheckNotAllNA() {
+        if (Data != null && Data.QuestionGroupContent != null && Data.QuestionGroupContent.length >= CurentQuestionGroup + 1) {
+
+            // Пока такую проверку делать только для бракеража
+            if (Data.CheckList.CheckListId != 36)
+                return true;
+
+            var currentGroup = Data.QuestionGroupContent[CurentQuestionGroup];
+            var hasNoNA = false;
+
+            currentGroup.Questions.forEach(function (question) {
+                if (question.AnswerIdArray != null && question.AnswerIdArray.filter(_ans => _ans != 3).length > 0)
+                    hasNoNA = true;
+            })
+
+            return hasNoNA;
+        }
+        else return true;
+    }
+
+    function QuestionsNext() {
+        if (!CheckNotAllNA()) {
+            alert("Ошибка! Все ответы являются N/A")
+            return;
+        }
+        SendQuestions();
+
+        $("#tableq").remove();
+        CurentQuestionGroup++;
+        QuestionsView(CurentQuestionGroup);
+
+
+        $('#buttons').remove();
+        $('.navigation_butt').remove();
+
+
+        if (CurentQuestionGroup == Data.QuestionGroupContent.length - 1) {
+            if (Data.CheckList.DocNumMode == 2) {
+                var buttonAgain = $('<div class="navigation_butt" style="display: inline-block; width: 180px;"><button class="btn btn-success" id="buttons" onclick="QuestionsEnd(true)">Ещё одно блюдо</button></div>');
+                $("#footer").append(buttonAgain);
+            }
+            var button = $('<div class="navigation_butt" style="display: inline-block;"><button class="btn btn-success" id="buttons" onclick="QuestionsEnd()">Завершить</button></div>');
+            $("#footer").append(button);
+        }
+        else {
+            var button_prev = $('<div class="navigation_butt" style="display: inline-block; width: 200px;"><button class="btn btn-success" id="buttons" onclick="QuestionsPrev()" >Предыдущий</button></div>');
+            $("#footer").append(button_prev);
+            var button = $('<div class="navigation_butt" style="display: inline-block"><button class="btn btn-success"  id="buttons" onclick="QuestionsNext()">Следующий</button></div>');
+            $("#footer").append(button);
+
+        }
+
+
+    }
+
+    function SendQuestions() {
+        Data.DocNumStr = $("#numdocsp_input").val();
+
+        var JsonString = JSON.stringify(Data);
+        var DateSanPin = kendo.toString(kendo.parseDate($("#datesanpin").data("kendoDatePicker").value()), 'yyyyMMdd');
+
+        var sendData = {
+            id: DivisionId,
+            answer: JsonString
+        };
+
+        $.ajax({
+            url: "https://" + host + "/complaints/api/checklist/PostCheckListReportMultiSelectSubsession?DepId=" + DivisionId + "&Date=" + DateSanPin,
+            type: "POST",
+            contentType: "application/json",
+            processData: false,
+            data: JsonString,
+            success: function (data) {
+
+
+            },
+            error: function () {
+                alert("Ошибка сохранения")
+            }
+        });
+    }
+
+
+    function QuestionsEnd(again) {
+        if (!CheckNotAllNA()) {
+            alert("Ошибка! Все ответы являются N/A")
+            return;
+        }
+        Data.DocNumStr = $("#numdocsp_input").val();
+
+        var depId = DivisionId;
+        var checkListId = CheckListId;
+        var DateSanPin = kendo.toString(kendo.parseDate($("#datesanpin").data("kendoDatePicker").value()), 'yyyyMMdd');
+
+        if (Data.CheckList.DocNumMode == 2) {
+            if (String(Data.DocNumStr) == "" || isNaN(parseInt(Data.DocNumStr))) {
+                alert("Введите числовой баркод")
+                return;
+            }
+        }
+
+        $('#numdoc_desc').css("display", "none");
+        $('#numdocsp_select_button').css("display", "none");
+
+        $('#numdoc_desc').val("");
+        $('#numdoc_desc').hide("");
+        $('#numdocsp_select_button').hide("");
+
+        $('#QuestionGroup').text("");
+        $("#tableq").remove();
+
+        $('#buttons').remove();
+        $('#buttons').remove();
+        $("#numdocsp_input").val("");
+        $("#numdocsp_input").hide();
+
+
+        $("#start").css("display", "block");
+        $("#division").text("Название подразделения");
+        $("#subdivisionsanpin").data("kendoComboBox").value("");
+        $("#check_list").data("kendoComboBox").value("");
+
+
+        $("#numdocsanpin").data("kendoComboBox").value("");
+        var combobox = $("#numdocsanpin").data("kendoComboBox");
+        combobox.setDataSource([]);
+        $(".numdocsanpin_").hide();
+
+        GenerateDatePikerSAnPin([]);
+
+
+        CurentQuestionGroup = 0;
+
+        var JsonString = JSON.stringify(Data);
+
+
+        var sendData = {
+            id: depId,
+            answer: JsonString
+        };
+
+        //ToDo убрать это (отладка без VS на сервера)
+        //if (user_id == 2107) {
+        //    $("#tabs").append("https://" + host + "/complaints/api/checklist/PostCheckListReportMultiSelect?DepId=" + DivisionId + "&Date=" + DateSanPin);
+        //    $("#tabs").append(JsonString);
+        //
+        //}
+
+        $.ajax({
+            // url: "https://"+host+"/complaints/api/checklist/PostCheckListReportMultiSelectSubsession?DepId="+DivisionId+"&Date="+DateSanPin,
+            url: "https://" + host + "/complaints/api/checklist/PostCheckListReportMultiSelect?DepId=" + depId + "&Date=" + DateSanPin,
+            type: "POST",
+            contentType: "application/json",
+            processData: false,
+            data: JsonString,
+            success: function (data) {
+                if (!isNaN(data)) {
+                    if (Number(data) >= 0) {
+                        if (again) {
+                            $("#numdocsp_input").prop("disabled", false);
+                            $("#subdivisionsanpin").val(depId);
+                            $("#check_list").val(CheckListId);
+                            $("#numdocsanpin").val("");
+                            $("#numdocsp_input").val("");
+                            $("#numdoc_desc").val("");
+                            Start(depId, checkListId, DateSanPin);
+                            setTimeout(function () { alert("Данные сохранены!"); }, 150);
+                        }
+                        else
+                            alert("Данные сохранены!");
+                    }
+                    else
+                        alert("Ошибка сохранения данных!");
+                }
+                else
+                    alert("Ошибка сохранения данных!\r\n" + data);
+            },
+            error: function () {
+                alert("Ошибка сохранения")
+            }
+        });
+
+    }
+
+    function StartQuestion() {
+        $("#start").css("display", "none");
+
+        $("#numdocsp_input").prop("disabled", false);
+
+        CurentQuestionGroup = 0;
+        QuestionsView(CurentQuestionGroup);
+
+        $('#buttons').remove();
+        $('.navigation_butt').remove();
+
+        if (Data.QuestionGroupContent.length == 1) {
+            if (Data.CheckList.DocNumMode == 2) {
+                var buttonAgain = $('<div class="navigation_butt" style="display: inline-block; width: 180px;"><button class="btn btn-success" id="buttons" onclick="QuestionsEnd(true)">Ещё одно блюдо</button></div>');
+                $("#footer").append(buttonAgain);
+            }
+            var button = $('<div class="navigation_butt" style="display: inline-block;"><button class="btn btn-success" id="buttons" onclick="QuestionsEnd()">Завершить</button></div>');
+            $("#footer").append(button);
+        }
+        else {
+            var button_next = $('<button class="btn btn-success" id="buttons" onclick="QuestionsNext()" >Следующий</button>');
+            $("#footer").append(button_next);
+        }
+
+
+
+    }
+
+
+    function GetNameDivision(id) {
+        var result;
+        DepartmentList.forEach(function (item, i, arr) {
+            if (item.value == id) {
+                result = item.text;
+            }
+        });
+
+        return result;
+    }
+
+    function Start(divIdForced, checkListForced, dateStrForced) {
+
+        DivisionId = divIdForced != null ? divIdForced : $("#subdivisionsanpin").val();
+        CheckListId = checkListForced != null ? checkListForced : $("#check_list").val();
+
+        if (CheckListId == "") { alert("Необходимо выбрать список!"); return; }
+        if (DivisionId == "") { alert("Необходимо выбрать подразделение!"); return; }
+
+
+        $("#division").text(GetNameDivision(DivisionId));
+
+        GenerateData(dateStrForced);
+
+    }
+
+    function GetCheckListReportDates() {
+        DivisionId = $("#subdivisionsanpin").val();
+        CheckListId = $("#check_list").val();
+
+        if (DivisionId != "" && CheckListId != "") {
+            $.ajax({
+                url: "https://" + host + "/complaints/api/info/GetCheckListReportDates?DepId=" + DivisionId + "&CheckListId=" + CheckListId,
+                global: false,
+                type: "GET",
+                success: function (data) {
+                    if (typeof (data) == "object") {
+                        GenerateDatePikerSAnPin(data);
+                    }
+                    else {
+                        onExit();
+                    }
+
+                }
+            });
+        }
+    }
+
+    function ChangeDateChekList() {
+        EraseNumDocList();
+
+        var datesp = kendo.toString(kendo.parseDate($("#datesanpin").data("kendoDatePicker").value()), 'yyyy-MM-ddT00:00:00');
+
+        listDateOfAnswer.forEach(function (item) {
+
+            if (item.Date == datesp) {
+                if (item.DocList.length > 0) {
+                    ListDocNum = [];
+                    item.DocList.forEach(function (it) {
+                        var DocNum = new Object();
+                        DocNum.text = it;
+                        DocNum.value = it;
+                        ListDocNum.push(DocNum);
+                    })
+
+
+
+                    $(".numdocsanpin_").show();
+                    var combobox = $("#numdocsanpin").data("kendoComboBox");
+                    combobox.setDataSource(ListDocNum);
+
+
+                }
+            }
+
+        });
+    }
+
+    function onChangeSanPinDivision() {
+        EraseNumDocList();
+        GetCheckListReportDates();
+    }
+    function onChangeCheckList() {
+        EraseNumDocList();
+        GetCheckListReportDates();
+    }
+    function onChangeDateChekList() {
+        ChangeDateChekList();
+    }
+    function onSelectDateChekList(e) {
+        ChangeDateChekList();
+    }
+    //-----------------------------------------------------------------------
+</script>
+
+<script>
+
+    $(document).ready(function () {
+
+
+        var uagent = navigator.userAgent.toLowerCase();
+
+
+        if (uagent.search("windows") > -1) {
+            $('#data_checklist').hover(
+                function () {
+
+                    $('#data_checklist').on('scroll', function () {
+                        var top = $("#data_checklist").scrollTop();
+                        $("#header_table_").scrollTop(top);
+                    });
+
+                    $('#header_table_').off('scroll');
+
+                },
+                function () {
+
+                });
+
+            $('#header_table_').hover(
+                function () {
+
+                    $('#header_table_').on('scroll', function () {
+                        var top = $("#header_table_").scrollTop();
+                        $("#data_checklist").scrollTop(top);
+                    });
+
+                    $('#data_checklist').off('scroll');
+
+                },
+                function () {
+
+                });
+        }
+        else {
+            $("#data_checklist").scroll(function (eventObject) {
+                var top = $("#data_checklist").scrollTop();
+
+                $("#header_table_").scrollTop(top);
+
+            });
+
+            $("#header_table_").scroll(function (eventObject) {
+                var top = $("#header_table_").scrollTop();
+
+                $("#data_checklist").scrollTop(top);
+
+            });
+        }
+
+
+
+
+    });
+
+    function ShowDetail(CheckListId, DepId, Date, NumDoc) {
+        var DateSanPin_ = kendo.toString(kendo.parseDate(Date), 'yyyyMMdd');
+        var NumDocStr = NumDoc != null ? ("&DocNumStr=" + String(NumDoc)) : "";
+        $.ajax({
+            url: "https://" + host + "/complaints/api/checklist/GetCheckListForInspection?id=" + CheckListId + "&DepId=" + DepId + "&Date=" + DateSanPin_ + "&ExcludeNewly=true" + NumDocStr,
+            global: false,
+            type: "GET",
+            success: function (data) {
+
+                if (typeof (data) == "object") {
+
+                    var CheckList = new Object();
+                    CheckList.CheckListActive = data.CheckList.CheckListActive;
+                    CheckList.CheckListId = data.CheckList.CheckListId;
+                    CheckList.CheckListName = data.CheckList.CheckListName;
+                    CheckList.MultiSelect = data.CheckList.CheckListMultiCheck;
+                    CheckList.DocNumMode = data.CheckList.CheckListDocNumMode;
+                    CheckList.AnswerUnitCollection = [];
+                    CheckList.DocNumDesc = data.DocNumDesc;
+                    CheckList.DocNumStr = data.DocNumStr;
+
+                    var ListGroupQuestions = [];
+                    data.QuestionGroupContent.forEach(function (item) {
+
+                        var GroupQuestion = new Object();
+                        GroupQuestion.QuestionGroupId = item.QuestionGroup.QuestionGroupId;
+                        GroupQuestion.QuestionGroupName = item.QuestionGroup.QuestionGroupName;
+                        //GroupQuestion.CommentIsAvailable = item.CommentIsAvailable;
+                        //GroupQuestion.AttachmentIsAvailable = item.AttachmentIsAvailable;
+                        GroupQuestion.Coment = item.Coment;
+
+                        GroupQuestion.Attachments = item.Attachments;
+
+                        var Questions = item.Questions;
+                        var Data = [];
+                        var ListAnswer;
+                        Questions.forEach(function (itm) {
+
+                            var item = new Object();
+                            item.QuestionId = itm.QuestionId;
+                            item.QuestionText = itm.QuestionText;
+                            item.AnswerSchemeId = itm.QuestionAnswerSchemeContent.AnswerScheme.AnswerSchemeId;
+                            item.AnswerIdArray = [];
+                            ListAnswer = [];
+                            itm.QuestionAnswerSchemeContent.AnswerUnits.forEach(function (item_) {
+
+                                if (CheckList.AnswerUnitCollection.filter(_ans => _ans.AnswerUnitId == item_.AnswerUnitId).length == 0)
+                                    CheckList.AnswerUnitCollection.push(item_)
+
+                                ListAnswer.push(item_);
+
+                                if (item_.AnswerUnitSelected == true) {
+                                    item.AnswerIdArray.push(item_.AnswerUnitId);
+                                }
+                            });
+
+
+                            Data.push(item);
+
+                        });
+
+                        GroupQuestion.ListAnswer = ListAnswer;
+                        GroupQuestion.Questions = Data;
+                        ListGroupQuestions.push(GroupQuestion);
+
+                    });
+
+
+                    var Data_ = new Object();
+                    Data_.CheckList = CheckList;
+                    Data_.QuestionGroupContent = ListGroupQuestions;
+
+
+                    ShowResult(Data_);
+
+                } else {
+                    alert("Ошибка при получении данных!");
+                }
+            }
+        });
+    }
+
+    function ShowResult(Data) {
+        var html_str = ""
+
+
+        //var html_rep_header = $('<div>' + Data.CheckList.CheckListName + '</div>');
+        $("#window_report_sanpin").data("kendoWindow").title(Data.CheckList.CheckListName);
+        $("#box_grid_report_sanpin").html("");
+
+
+        if (String(Data.CheckList.DocNumStr) != "") {
+            var html_text = $('<div style="padding:12px;padding-top:3px;border-bottom: solid 3px gray"><span style ="font-weight: 800;font-size: larger">'
+                + Data.CheckList.DocNumStr + (String(Data.CheckList.DocNumDesc) != "" ? (" - " + Data.CheckList.DocNumDesc) : "")
+                + '</span></div>');
+            $("#box_grid_report_sanpin").append(html_text);
+        }
+
+        Data.QuestionGroupContent.forEach(function (itm) {
+
+            var html_text = $('<div style="padding:8px;padding-top:15px;border-bottom: solid 2px gray"><span style ="font-weight: 800;">' + itm.QuestionGroupName + '</span></div>');
+            $("#box_grid_report_sanpin").append(html_text);
+
+            itm.QuestionGroupName;
+            itm.Coment;
+
+            itm.Questions.forEach(function (question) {
+
+                //var id = parseInt(question.AnswerIdArray[0]) - 1;
+                //if (id == 10002) { id = 1 };
+                //if (id == 10003) { id = 2 };
+                //console.log(id);
+                //if (itm.ListAnswer[id].AnswerUnitText != undefined) {
+                //    var answer_txt = itm.ListAnswer[id].AnswerUnitText;
+                //}
+
+                var id = parseInt(question.AnswerIdArray[0])
+                var unit = Data.CheckList.AnswerUnitCollection.filter(_ans => _ans.AnswerUnitId == id);
+
+                var unitColor = "#000000";//"#555555";
+                var questionColor = "#000000";//"#555555";
+                if (unit[0].AnswerUnitText != undefined) {
+                    var answer_txt = unit[0].AnswerUnitText;
+                }
+                if (unit[0].AnswerUnitScore == -1) {
+                    unitColor = "#EE0000";
+                    questionColor = "#CC0000";
+                }
+
+
+                var question_txt = question.QuestionText;
+
+                //var html_rep_item = $('<div style="padding:5px;border-bottom: solid 1px lightgray"><div style ="display:inline-block">' + question_txt + '</div><div style ="float:right;text-align:right;font-weight: 800; width:15px; padding-left:10px; display:inline-block">' + answer_txt + '</div></div>');;
+                //var html_rep_item = $('<div style="padding:5px;border-bottom: solid 1px lightgray"><div style ="display:inline-block">' + question_txt + '</div><div style ="text-align:right;font-weight: 800; width:150px; padding-left:10px; display:inline-block">' + answer_txt + '</div></div>');
+                var html_rep_item = $('<div style="padding:11px;border-bottom: solid 1px lightgray"><span style="color:' + questionColor + '">' + question_txt + '</span><span style="color:' + unitColor + ';float:right;font-weight: 800; padding-left:10px; padding-right:5px;">' + answer_txt + '</span></div>');
+
+                $("#box_grid_report_sanpin").append(html_rep_item);
+            });
+
+
+            if (itm.Attachments != null && itm.Attachments.length > 0) {
+                var html_text = $('<div style="padding:8px"><span style ="font-weight: 800;">Фото: </span></div>');
+                $("#box_grid_report_sanpin").append(html_text);
+                html_text = $('<div style="padding:8px;padding-top:12px;border-bottom: solid 1px gray;height:108px;"></div>');
+                for (var iAtt = 0; iAtt < itm.Attachments.length; iAtt++) {
+                    var rndStr = String(performance.now());
+                    var img = $("<img src='" + itm.Attachments[iAtt] + "?" + rndStr + "' class='photoPreviewView' onclick='ShowPhoto(\x22" + itm.Attachments[iAtt] + "?" + rndStr + "\x22, false)'/>")
+                    // Поздняя подгрузка изображений
+                    //var img = $("<img alt='" + itm.Attachments[iAtt] + "?" + rndStr + "' class='photoPreviewView' onclick='ShowPhoto(\x22" + itm.Attachments[iAtt] + "?" + rndStr + "\x22, false)'/>")
+                    html_text.append(img);
+                }
+                $("#box_grid_report_sanpin").append(html_text);
+            }
+
+
+            if (itm.Coment != null && itm.Coment != "") {
+                var html_text = $('<div style="padding:8px;padding-top:12px;padding-bottom:12px;border-bottom: solid 1px gray"><span style ="font-weight: 800;">Комментарий: </span>' + itm.Coment + '</div>');
+                $("#box_grid_report_sanpin").append(html_text);
+            }
+
+            //$("#box_grid_report_sanpin").append(html_rep_item);
+
+        });
+
+        $("#window_report_sanpin").data("kendoWindow").center().open();
+
+
+        //// Поздняя подгрузка изображений
+        //$(".photoPreviewView").each(function () {
+        //    var alt = $(this).attr("alt");
+        //    var src = $(this).attr("src");
+        //    if (alt != null && src == null) {
+        //        $(this).attr("src", alt);
+        //        $(this).attr("alt", src);
+        //    }
+        //})
+    }
+
+
+</script>
+<style>
+    html, body {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .tablequest {
+        font-size: 16px;
+        table-layout: fixed;
+    }
+
+    .col1 {
+        width: 600px;
+    }
+
+    .coment {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .checkbox_t {
+        width: 20px;
+        height: 20px;
+    }
+
+    .selectday {
+        background-color: #85d633;
+        text-align: center;
+        width: 35px;
+        height: 25px;
+        border-radius: 3px;
+    }
+
+    @media screen and (max-width:1000px) {
+        .start_box {
+            position: relative !important;
+            left: 1% !important;
+            margin-top: 10px !important;
+        }
+
+        .k-primary {
+            left: 30% !important;
+        }
+
+        .coment {
+            width: 80%;
+        }
+
+        .division {
+            font-size: 20px !important;
+        }
+
+        .question_box {
+            width: 100%;
+        }
+
+        .col1 {
+            width: 400px;
+        }
+    }
+
+    @media screen and (max-width:500px) {
+        .start_box {
+            position: relative !important;
+            left: 1% !important;
+            margin-top: 10px !important;
+        }
+
+        .k-primary {
+            left: 30% !important;
+        }
+
+        .coment {
+            width: 80%;
+        }
+
+        .division {
+            font-size: 20px !important;
+        }
+
+        .question_box {
+            width: 100%;
+        }
+
+        .col1 {
+            width: 170px;
+        }
+    }
+</style>
+
+<style>
+    .table_checklist {
+        width: 2700px;
+        font-size: 12px;
+    }
+
+    .table_head {
+        width: 350px !important;
+    }
+
+    .tr_row {
+        height: 56px;
+    }
+
+    .cell_div {
+        width: 80px;
+        border: 1px solid black;
+        text-align: center;
+    }
+
+    .table thead th {
+        vertical-align: top !important;
+    }
+
+    .table td, .table th {
+        padding: 2px !important;
+        padding-left: 4px !important;
+    }
+
+    .division_tab {
+        background-color: #7e899291;
+        color: #fff;
+        width: 180px;
+        text-align: center;
+    }
+
+    .checklist {
+        background-color: #7c8288;
+        color: #fff;
+        width: 240px;
+        font-size: 11px;
+    }
+
+    .outer {
+        position: relative;
+        overflow-x: auto;
+    }
+
+    .inner {
+        overflow-y: auto;
+        width: 1100px;
+        height: 715px;
+        margin-left: -25px;
+        display: inline-block;
+    }
+
+    .header_table {
+        vertical-align: top;
+        height: 700px;
+        width: 370px;
+        display: inline-block;
+        overflow-y: auto;
+    }
+
+    .StatCompleted {
+        background-color: #ebecec;
+    }
+
+    .header_table::-webkit-scrollbar {
+        width: 20px;
+    }
+
+    .header_table::-webkit-scrollbar-thumb {
+        background-color: rgba(255,255,255,1);
+    }
+
+    .photoPreviewEdit {
+        margin: 2px;
+        margin-right: 15px;
+        height: 83px;
+        max-height: 83px;
+        max-width: 150px;
+        display: inline-block;
+        border: 1px solid gray;
+        cursor: pointer;
+    }
+
+    .photoPreviewView {
+        margin: 2px;
+        margin-right: 15px;
+        height: 83px;
+        max-height: 83px;
+        max-width: 150px;
+        display: inline-block;
+        border: 1px solid gray;
+        cursor: pointer;
+    }
+
+    .photo {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    @media screen and (max-width:500px) {
+        .inner {
+            display: none;
+        }
+    }
+</style>
+
+<head>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <title>Кофемания</title>
+    <link rel="shortcut icon" href="favicon.png" type="image/png">
+
+</head>
+
+<ul id="tabs" class="nav nav-tabs" style="display: none">
+    <li class="nav-item"><a class="nav-link active" data-toggle="tab" role="tab" href="#tabs-1">Отзывы</a></li>
+    <li id="sanpin" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-2">СанПин</a></li>
+    <li id="report_sanpin" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-3">Отчет</a></li>
+    <li id="pahar" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-5">Пахарь</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-4">Редактор</a></li>
+    <li id="tab_staffing" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-6">Текучесть кадров</a></li>
+    <li id="tab_staffing" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-7">Отпуска</a></li>
+    <li id="tab_quality" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-10">Качество</a></li>
+    <li id="tab_quality_kitchen" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-9">Качество Кухня</a></li>
+    <div style="width: 100px; margin-left: auto; margin-right:10px"><button id="exit" class="btn btn-outline-primary">Выход</button></div>
+</ul>
+
+<div class="tab-content" id="tab-content">
+    <div class="tab-pane fade show active" id="tabs-1">
+
+        <div style="height: 10px; width: 100%;">
+        </div>
+
+        <div id="tools" style="height: 90px; width: 100%; display: none">
+            <button id="primaryTextButton" class="k-primary">Добавить</button>
+            <button id="ExpandCollapseButton" class="k-primary">Развернуть</button>
+            <button id="Filter" class="k-primary">Фильтр</button>
+            <button id="Report" class="k-primary">Отчет</button>
+            <button id="Report2" class="k-primary">Отчет 2</button>
+        </div>
+        <div id="filter_feedback" style="display:none"><span>Фильтр  </span><span id="filter_date"></span> </div>
+
+        <div style="height: 10px; width: 100%;">
+        </div>
+
+
+        <div class="container-fluid" style="height: 750px;" id="box_grid">
+            <div id="grid_message"></div>
+        </div>
+
+    </div>
+
+    <div class="tab-pane fade" id="tabs-2">
+
+        <div class="division" id="division" style="font-size: 25px; width:400px">Название подразделения</div>
+        <div class="start_box" id="start" style="position: relative; left: 40%;  height: 100px; width: 500px">
+            <div style="width: 250px; padding:5px;"><input id="check_list" placeholder="Выберите список..." style="width: 250px;"></div>
+            <div style="width: 250px; padding:5px;"><input id="subdivisionsanpin" placeholder="Выберите подразделение..." style="width: 250px;"></div>
+            <div style="width: 250px; padding:5px;" class="datesanpin"> <input id="datesanpin" title="datepicker" style="width: 250px" /></div>
+            <div style="width: 250px; padding:5px; display:none" class="numdocsanpin_"> <input id="numdocsanpin" placeholder="Номер документа..." style="width: 250px" /></div>
+
+            <div style="width: 250px; padding:5px;"><button class="k-primary k-button" id="buttonsstart" onclick="Start()">Start</button></div>
+
+        </div>
+
+        <div id="QuestionGroup" style="font-size: 22px; position: relative;"></div>
+        <div id="numdocsp">
+            <input style="display:none;width: 120px" id="numdocsp_input" placeholder="Номер документа..." onchange="DocNumChanged()" />
+            <input style="display:none;font-weight: 700;margin-left:7px;width: 350px" id="numdoc_desc" placeholder="" disabled="disabled" />
+            <button id="numdocsp_select_button" style='display:none; margin-left:10px;width: 170px; min-width:20px;' class='k-primary k-button' ; onclick='BarcodSelectNaumen()'>Выбрать в Naumen</button>
+            <button id="menu_select_button" style='display:none; margin-left:10px;width: 170px; min-width:20px;' class='k-primary k-button' ; onclick='BarcodSelectMenu()'>Выбрать из меню</button>
+        </div>
+        <div style="height: 20px"></div>
+        <div id="question_box" class="question_box"></div>
+        <div class="content" id="footer"></div>
+        <div style="height: 30px"></div>
+
+
+    </div>
+    <div class="tab-pane fade" id="tabs-3">
+        <div class="container-fluid" style="height: 750px; width: 1600px">
+            <div style="height: 40px; padding-top: 5px;">
+                <button class="btn btn-outline-primary" id="refreshsanpin" onclick="RefreshSanPin()">Обновить</button>
+                &nbsp;
+                <input type="checkbox" id="sanpin_use_filters" onclick="SanpinFiltersPanelVisible()" /> За период
+                &nbsp;
+                <div id="sanpin_filters" style='display:none;margin-left:5px'>
+                    С:
+                    <input id="datepickerstart_sanpin" title="datepicker" style="display: inline-block; width: 110px" />
+                    По:
+                    <input id="datepickerend_sanpin" title="datepicker" style="display: inline-block; width: 110px" />
+
+                    <input id="sanpin_deps" placeholder="Выберите подразделение..." style="width: 180px;">
+                    <input id="sanpin_checklists" placeholder="Выберите отчет..." style="width: 180px;">
+                </div>
+            </div>
+
+            <!--
+            <div id="grid_sanpin" class="outer container-fluid">
+                <div id="header_table_" class="header_table">
+                    <div style="display: inline-block; width: 350px">
+
+                        <table class="table table_head">
+                            <thead id="thead_tab">
+
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+                <div id="data_checklist" class="inner">
+                    <table class="table table-striped table_checklist" border="1">
+
+                        <tbody id="tbody_data">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <br>
+            -->
+            <div id="grid_sanpin2" style="margin-top:10px;"></div>
+
+        </div>
+    </div>
+    <div class="tab-pane fade" id="tabs-4">
+
+        <div class="container-fluid">
+            <div>
+                <div style="display: inline-block; width: 300px; padding:5px;"><input id="check_list_edit" placeholder="Выберите список..." style="width: 250px;"></div>
+                <div style="display: inline-block; width: 300px; padding:5px;"><input id="FunctionCheckList" placeholder="Выберите список..." style="width: 250px;"></div>
+                <div style="display: inline-block; width: 100px; padding:5px;"><button class="btn btn-outline-primary" id="new_checklist" onclick="OpenN()">Новый</button></div>
+                <div style="display: inline-block; width: 100px; padding:5px;"><button class="btn btn-outline-primary" id="open_checklist" onclick="OpenCheckList()">Открыть</button></div>
+            </div>
+            <div>
+                <div id="sanpin_question_Editor" class="question_box"></div>
+            </div>
+
+        </div>
+
+    </div>
+    <div class="tab-pane fade" id="tabs-5">
+        <div style="padding-top: 10px; padding-bottom: 10px; padding-left: 15px;">
+            <div style="display: inline-block; height: 30px; width: 300px">
+                <div style="display: inline-block; height: 20px; width: 20px">С:</div><div style="display: inline-block">  <input id="datepickerstart_pah" title="datepicker" style="display: inline-block; width: 250px" /></div>
+            </div>
+            <div style="display: inline-block; height: 30px; width: 300px">
+                <div style="display: inline-block; height: 20px; width: 30px">ПО:</div><div style="display: inline-block">  <input id="datepickerend_pah" title="datepicker" style="display: inline-block; width: 270px" /></div>
+            </div>
+            <div style="display: inline-block; height: 30px; width: 120px; padding-left: 15px;">
+                <button class="btn btn-outline-primary" id="ButtonPah" onclick="ExecutePah()">Посчитать</button>
+            </div>
+
+            <div style="display: inline-block; height: 30px; padding-left: 15px;">
+                <div style="display: block" id="PahRefBox">
+
+                    <div style='display:inline-block;margin-left:5px'>
+                        <input type="checkbox" id="pah_ref_results" /> Реф. результаты
+                    </div>
+                    &nbsp;
+                    <div style='display:inline-block;margin-left:5px'>
+                        <input type="checkbox" id="pah_ref_values" /> Реф. значения
+                    </div>
+                    &nbsp;
+                    <button class="btn btn-outline-primary" id="ButtonPahRefs" onclick="RefsPah()">Таблица значений</button>
+                </div>
+            </div>
+
+            <div style="display: inline-block; height: 30px; width: 190px; padding-left: 55px;">
+                <button class="btn btn-outline-primary" onclick="ShopPaharLog(true)">Журнал расчета</button>
+            </div>
+
+        </div>
+        <div class="container-fluid box_pahar" style="height: 750px;" id="box_pahar">
+            <div id="grid_pahar"></div>
+        </div>
+
+    </div>
+
+
+
+
+    <div class="tab-pane fade" id="tabs-6">
+        <!-- StaffingTurnover -->
+
+        <div class="container-fluid" style="height: 750px; width: 1600px">
+
+            <div style="display: block; height: 90px; padding-top: 5px;">
+
+                <div style="display: inline-block; height: 35px; width: 130px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" id="refreshStaffingTurnover" onclick="RefreshStaffTurnover()">Построить</button>
+                </div>
+
+                С:
+                <input id="datepickerstart_staff_turnover" title="datepicker" style="display: inline-block; width: 140px" />
+                По:
+                <input id="datepickerend_staff_turnover" title="datepicker" style="display: inline-block; width: 140px" />
+
+                <div style="display: inline-block; width: 103px; padding: 5px;">
+                    <a style='cursor:pointer;color:DarkBlue;text-decoration: underline;' onclick='SelectStaffTurnoverDeps()'>Рестораны:</a>&nbsp;
+                    <input id="staff_turnover_deps" readonly="readonly" value="Все" style="width: 93px;">
+                </div>
+
+                <div style="display: inline-block; height: 35px; width: 150px;margin-left:15px">
+                    <button class="btn btn-primary" onclick="StaffTurnoverModeChange(0)">По ресторанам</button>
+                </div>
+                <div style="display: inline-block; height: 35px; width: 150px;">
+                    <button class="btn btn-primary" onclick="StaffTurnoverModeChange(1)">По должностям</button>
+                </div>
+
+            </div>
+
+
+            <div class="container-fluid box_staff_turnover_report" style="height: 750px;" id="box_staff_turnover_report">
+                <div id="grid_staff_turnover_report"></div>
+            </div>
+
+            <div style="display: block; height: 100px; width:100%;">
+                &nbsp;
+            </div>
+
+            <div class="container-fluid box_staff_turnover_employyes" style="height: 750px;" id="box_staff_turnover_employyes">
+                <div id="grid_staff_turnover_employyes"></div>
+            </div>
+
+            <div style="display: block; height: 25px; width:100%;">
+                &nbsp;
+            </div>
+        </div>
+
+
+    </div>
+
+
+
+    <div class="tab-pane fade" id="tabs-7">
+        <!-- Vacation -->
+
+        <div class="container-fluid" style="height: 750px; width: 95%">
+
+            <div style="display: block; height: 50px; padding-top: 5px;">
+
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" id="refreshStaffVacation" onclick="RefreshStaffVacation()">Обновить</button>
+                </div>
+
+                <div style="display: inline-block; width:90px">Ресторан:</div> <div style="display: inline-block; width: 100px"><input id="staff_vacation_dep" placeholder="Все" style="width: 220px;"></div>
+
+            </div>
+
+
+
+            <div class="container-fluid box_staff_vacation" style="height: 750px;" id="box_staff_vacation">
+                <div id="grid_staff_vacation"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="tab-pane fade" id="tabs-8">
+        <!-- Staffing -->
+
+        <div class="container-fluid" style="height: 750px; width: 95%px">
+
+            <div style="display: block; height: 50px; padding-top: 5px;">
+
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" id="refreshStaffing" onclick="RefreshStaffing()">Обновить</button>
+                </div>
+
+            </div>
+
+
+
+            <div class="container-fluid box_staffing" style="height: 750px;" id="box_staffing">
+                <div id="grid_staffing"></div>
+            </div>
+
+        </div>
+
+
+    </div>
+
+    <!-- Качество -->
+    <div class="tab-pane fade" id="tabs-10">
+        <div class="tab-content" id="tab10-content" style="padding-left: 10px; height: 750px;">
+            <div style="display: block; height: 60px; padding-top: 5px;">
+                Период 
+                <span style="color:red;" class="k-icon k-i-info" title="Если выбранный период захватывает несколько месяцев, то отчет строится с разбивкой по месяцам, при этом выборка идет за весь месяц вне зависимости от выбираемой даты начала или даты завершения периода!"></span> 
+                <input id="quality_start" title="" style="display: inline-block; width: 140px" />
+                по <input id="quality_end" title="" style="display: inline-block; width: 140px" />                 
+                Рестораны 
+                <span class="k-widget k-datepicker k-header" style="display: inline-block; width: 240px;">
+                    <span class="k-picker-wrap k-state-default">
+                        <input id="quality_departments" title="" style="display: inline-block; width: 100%;" data-role="datepicker" type="text" class="k-input" role="combobox" aria-expanded="false" aria-owns="quality_end_dateview" autocomplete="off" aria-disabled="false">
+                        <span unselectable="on" class="k-select" aria-label="select" role="button" aria-controls="quality_end_dateview">
+                            <span style="color:blue;" class="k-icon k-i-filter" title="Выбрать подразделения" onclick="chooseDepartments('quality_departments');"></span>
+                        </span>
+                    </span>
+                </span>
+                Показатели 
+                <span class="k-widget k-datepicker k-header" style="display: inline-block; width: 240px;">
+                    <span class="k-picker-wrap k-state-default">
+                        <input id="quality_indicators" title="" style="display: inline-block; width: 100%;" data-role="datepicker" type="text" class="k-input" role="combobox" aria-expanded="false" autocomplete="off" aria-disabled="false">
+                        <span unselectable="on" class="k-select" aria-label="select" role="button">
+                            <span style="color:blue;" class="k-icon k-i-filter" title="Выбрать подразделения" onclick="chooseIndicators('quality_indicators');"></span>
+                        </span>
+                    </span>
+                </span>
+                Данные в столбцах 
+                <input id="quality_cols" title="" style="display: inline-block; width: 140px" />
+                <div style="display: inline-block; height: 35px; width: 200px; padding-left: 15px;"><button class="btn btn-outline-primary" id="refreshQualityExtra" onclick="RefreshQualityExtra();">Обновить отчет</button></div>
+
+            </div>
+            <div class="container-fluid" id="box_quality_extra">
+                <div id="grid_quality_extra"></div>
+            </div>
+        </div>        
+    </div>
+
+    <!-- Качество Кухня -->
+    <div class="tab-pane fade" id="tabs-9">
+        <div class="tab-content" id="tab10-content" style="padding-left: 10px;">
+
+            <div style="display: block; height: 60px; padding-top: 5px;">
+                Период 
+                <span style="color:red;" class="k-icon k-i-info" title="Если выбранный период захватывает несколько месяцев, то отчет строится с разбивкой по месяцам, при этом выборка идет за весь месяц вне зависимости от выбираемой даты начала или даты завершения периода!"></span> 
+                <input id="quality_kitchen_start" title="" style="display: inline-block; width: 140px" />
+                по <input id="quality_kitchen_end" title="" style="display: inline-block; width: 140px" />
+                Рестораны 
+                <span class="k-widget k-datepicker k-header" style="display: inline-block; width: 240px;">
+                    <span class="k-picker-wrap k-state-default">
+                        <input id="quality_kitchen_departments" title="" style="display: inline-block; width: 100%;" data-role="datepicker" type="text" class="k-input" role="combobox" aria-expanded="false" aria-owns="quality_end_dateview" autocomplete="off" aria-disabled="false">
+                        <span unselectable="on" class="k-select" aria-label="select" role="button" aria-controls="quality_end_dateview">
+                            <span style="color:blue;" class="k-icon k-i-filter" title="Выбрать подразделения" onclick="chooseDepartments('quality_kitchen_departments');"></span>
+                        </span>
+                    </span>
+                </span>
+                Показатели 
+                <span class="k-widget k-datepicker k-header" style="display: inline-block; width: 240px;">
+                    <span class="k-picker-wrap k-state-default">
+                        <input id="quality_kitchen_indicators" title="" style="display: inline-block; width: 100%;" data-role="datepicker" type="text" class="k-input" role="combobox" aria-expanded="false" autocomplete="off" aria-disabled="false">
+                        <span unselectable="on" class="k-select" aria-label="select" role="button">
+                            <span style="color:blue;" class="k-icon k-i-filter" title="Выбрать подразделения" onclick="chooseIndicators('quality_kitchen_indicators');"></span>
+                        </span>
+                    </span>
+                </span>
+                Данные в столбцах 
+                <input id="quality_kitchen_cols" title="" style="display: inline-block; width: 140px" />
+                <div style="display: inline-block; height: 35px; width: 200px; padding-left: 15px;"><button class="btn btn-outline-primary" id="refreshQualityKitchen" onclick="RefreshQualityKitchen();">Обновить отчет</button></div>
+
+            </div>
+            <div class="-container-fluid" style="-height: 750px;" id="box_quality_kitchen">
+                <div id="grid_quality_kitchen"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- окно выбора подразделений -->
+<div id="win_dir_departments" style="display:none;"> 
+    <div style="display: inline-block; height: 35px;">
+        <button class="btn btn-outline-primary" id="selectAllAero" onclick="selectAllDepartments(true);">Аэропорты</button> 
+        <button class="btn btn-outline-primary" id="selectAllAero" onclick="selectAllDepartments(false);">Город</button> 
+        <button class="btn btn-outline-primary" id="selectAllAero" onclick="clearAllDepartments();">Очистить</button>
+    </div>
+    <div id="win_dir_departments_grid"></div>
+</div> 
+
+<!-- окно выбора показателя -->
+<div id="win_dir_indicators" style="display:none;"> 
+    <div id="win_dir_indicators_grid"></div>
+</div> 
+
+<!-- всплывающее окно -->
+<div id="popup_win" style="display:none; width:210px;">    
+</div>
+
+<div id="window_pah_ref" style="display: none">
+    <div class="container-fluid box_pahar_ref" style="height: 700px;" id="box_pahar_ref">
+        <div id="grid_pahar_refs"></div>
+    </div>
+</div>
+
+
+<div id="window_report" style="display: none">
+    <div>
+        <div style="display: inline-block; height: 60px; width: 270px">
+            <div style="display: inline-block; height: 20px">С:</div><div>  <input id="datepickerstart_rep" title="datepicker" style="display: inline-block; width: 250px" /></div>
+        </div>
+        <div style="display: inline-block; height: 60px; width: 270px">
+            <div style="display: inline-block; height: 20px">ПО:</div><div>  <input id="datepickerend_rep" title="datepicker" style="display: inline-block; width: 250px" /></div>
+        </div>
+        <div style="display: inline-block; height: 15px"><button id="Button_report" onclick="OnButton_report()">Ok</button></div>
+    </div>
+    <div>
+        <div style="height: 100%" id="box_grid_report"> </div>
+    </div>
+</div>
+
+<div id="window_report_sanpin" style="display: none">
+    <div>
+        <div id="box_grid_report_sanpin"> </div>
+    </div>
+</div>
+
+<div id="window_sanpin_details" style="display: none">
+    <div height:580px">
+        <div id="box_sanpin_details"> </div>
+    </div>
+</div>
+
+
+<div id="window_pahar_log" style="display: none">
+    <!--<div style="height:25px;padding-top:10px;float:right;margin-right:25px" id="naumen_buttons">-->
+    <div style="height:35px;width:100%;padding:3px;">
+        <button style='width:110px; min-width:20px;margin-left:10px' class='k-primary k-button' onclick='ShopPaharLog(false)'>Обновить</button>
+        <button style='width:150px; min-width:20px;margin-left:50px' class='k-primary k-button' onclick='PahRecalcPahar()'>Пересчитать день</button>
+        <button style='width:50px; min-width:20px;margin-left:50px' class='k-primary k-button' onclick='PahLogResetState()'>res.</button>
+    </div>
+    <div id="box_pahar_log" style="display:inline-block;width:100%"> </div>
+</div>
+
+<script id="search-template" type="text/x-kendo-template">
+    поиск:<input type="search" id="search">
+</script>
+
+<div id="window_select_naumen" style="display: none">
+    <!--<div style="height:25px;padding-top:10px;float:right;margin-right:25px" id="naumen_buttons">-->    
+    <div style="height:35px;width:100%;padding:3px;" id="naumen_buttons">
+        <button style='width:110px; min-width:20px;margin-left:10px' class='k-primary k-button' onclick='BarcodConfirmNaumen()'>Выбрать</button>
+    </div>
+    <div id="naumen_tables">
+                <div id="box_naumen_cat" style="display:inline-block;width:200px;vertical-align:top;"> </div>
+                <div id="box_naumen_dishes" style="margin-left:15px;display:inline-block;width:480px;vertical-align:top;"> </div>
+    </div>
+</div>
+
+<div id="window_photo" style="display: none">
+    <div style="width:100%; height:93%; padding:7px" id="photo_content">
+
+    </div>
+    <div style="width:100%; height:30px">
+        <div style="display: none">
+            <input type="text" id="photo_preview_class" style="width:100px" value="" />
+            <!--<input type="text" id="pah_ref_prior" style="width:100px" value="" />-->
+        </div>
+        <div>
+
+            <div style="width:24%;display:inline-block"><button style='float: left; width: 30px; min-width: 20px; margin-left: 30px' class='k-primary k-button' onclick='TogglePhoto(false)'>🡸</button></div>
+            <div style="width:24%;display:inline-block"><a href="#" download="" id="photo_download_link"><button style='float: left; width: 80px; min-width: 20px; margin-left: auto; margin-right: auto' class='k-primary k-button'>Скачать</button></a></div>
+            <!--<button style='width:80px; min-width:20px;margin-left:auto;margin-right:auto' class='k-primary k-button' onclick=''>Загрузить ещё ➕</button>-->
+            <div style="width:24%;display:inline-block"><button id="photo_delete_button" style='float:right;width:80px; min-width:20px;margin-left:auto;margin-right:auto' class='k-primary k-button' onclick='DeletePhoto()'>Удалить</button></div>
+            <div style="width:24%;display:inline-block;"><button style='float: right; width: 30px; min-width: 20px; margin-right: 10px' class='k-primary k-button' onclick='TogglePhoto(true)'>➔</button></div>
+        </div>
+    </div>
+</div>
+
+<div id="window_report2" style="display: none">
+    <div>
+        <div style="display: inline-block; height: 60px; width: 270px">
+            <div style="display: inline-block; height: 20px">С:</div><div>  <input id="datepickerstart_rep2" title="datepicker" style="display: inline-block; width: 250px" /></div>
+        </div>
+        <div style="display: inline-block; height: 60px; width: 270px">
+            <div style="display: inline-block; height: 20px">ПО:</div><div>  <input id="datepickerend_rep2" title="datepicker" style="display: inline-block; width: 250px" /></div>
+        </div>
+        <div style="display: inline-block; height: 15px"><button id="Button_report2" onclick="OnButton_report2()">Ok</button></div>
+    </div>
+    <div>
+        <div id="box_grid_report2"> </div>
+    </div>
+</div>
+
+
+<div id="window" style="display: none">
+    <div>
+        <div style="display: inline-block; height: 60px; width: 270px">
+            <div style="height: 20px">Дата</div><div>  <input id="datepicker" title="datepicker" style="width: 250px" /></div>
+        </div>
+        <div style="display: inline-block; height: 60px; width: 270px">
+            <div style="height: 20px">Подразделение</div> <div><input id="subdivision" placeholder="Выберите подразделение..." style="width: 250px;" /></div>
+        </div>
+    </div>
+    <div>
+        <div style="display: inline-block; height: 60px; width: 270px">
+            <div style="height: 20px">Рубрика</div><div><input id="classes" placeholder="Выберите рубрику..." style="width: 250px;" /></div>
+        </div>
+        <div style="display: inline-block; height: 60px; width: 270px">
+            <div style="height: 20px">Настроение</div><div><input id="type" placeholder="Выберите настроение..." style="width: 250px;" /></div>
+        </div>
+    </div>
+    <div style="height: 60px; width: 270px">
+        <div style="height: 20px">Источник</div><div><input id="source" placeholder="Выберите источник..." style="width: 250px;" /></div>
+    </div>
+    <div style="height: 60px; width: 100%">
+        <div style="display: inline-block; width: 270px">
+            <div>Имя  </div><div><input style="width: 250px" id="FirstName" class="k-textbox"></div>
+        </div>
+        <div style="display: inline-block; width: 270px">
+            <div>Фамилия  </div><div><input style="width: 250px" id="LastName" class="k-textbox"></div>
+        </div>
+    </div>
+    <div style="height: 60px; width: 100%">
+        <div style="display: inline-block; width: 270px">
+            <div>Email  </div><div><input style="width: 250px" id="email_emp" name="email" class="k-textbox"></div>
+        </div>
+        <div style="display: inline-block; width: 270px">
+            <div>Телефон  </div><div><input style="width: 250px" id="phone_emp" class="k-textbox"></div>
+        </div>
+
+    </div>
+
+
+
+    <div style="height: 280px">
+        <div style="height: 20px">Текст обращения</div><div><textarea id="editor" rows="10" cols="30" style="height:230px; width: 540px" aria-label="editor" oninput="ChangeText()"></textarea></div>
+    </div>
+    <div style="width: 100%; ">
+        <div style="display: inline-block; position: absolute; left: 10%; "><button id="okButton" style="width: 200px; height: 40px">Ok</button></div>
+        <div style="display: inline-block; position: absolute; left: 50%; "><button id="closeButton" style="width: 200px; height: 40px">Закрыть</button></div>
+    </div>
+</div>
+
+
+
+
+
+
+<div id="window_staffturnover_deps" style="display: none">
+    <div>
+        <div class="container-fluid box_staffturnover_deps" style="width:700px; height: 710px;" id="box_staffturnover_deps">
+            <div id="grid_staffturnover_deps"></div>
+        </div>
+
+        <div style="height: 50px; padding-left:45px">
+            <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                <button class="btn btn-outline-primary" onclick="StaffTurnOverDepsSelectAll()">ВСЕ</button>
+            </div>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                <button class="btn btn-outline-primary" onclick="StaffTurnOverDepsSelectAero()">Аэро</button>
+            </div>
+            <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                <button class="btn btn-outline-primary" onclick="StaffTurnOverDepsSelectCity()">Город</button>
+            </div>
+            <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                <button class="btn btn-outline-primary" onclick="StaffTurnOverDepsDeselectAll()">Снять все</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div id="window_staffvacation_dates" style="display: none">
+    <div>
+        <div style="height: 90px; padding-left:45px">
+            <div style="display: block; height: 40px; width: 300px">
+                <div style="display: inline-block; height: 20px; width: 30px">С:</div><div style="display: inline-block">  <input id="datepickerstart_staffvacation" title="datepicker" style="display: inline-block; width: 250px" /></div>
+            </div>
+            <div style="display: block; height: 40px; width: 300px">
+                <div style="display: inline-block; height: 20px; width: 30px">ПО:</div><div style="display: inline-block">  <input id="datepickerend_staffvacation" title="datepicker" style="display: inline-block; width: 250px" /></div>
+            </div>
+        </div>
+        <div style="height: 50px; padding-left:45px">
+            <input style="display:none" type="text" id="staffvacation_staffnum" value="" />
+            <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                <button class="btn btn-outline-primary" onclick="StaffVacationDatesAdd()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div id="window_answer" style="display: none">
+    <div style="height: 390px">
+        <div style="height: 20px">Текст ответа</div>
+        <div style="height: 320px">
+            <textarea id="editor_answer" rows="10" cols="30" style="height:300px; width: 570px" aria-label="editor"></textarea>
+        </div>
+    </div>
+    <div style="align-items: center">
+        <div><button id="okButton_answer">Ok</button></div>
+
+    </div>
+</div>
+
+
+<div id="window_mark" style="display: none">
+
+    <div id="selectmark" style="height: 60px; width: 350px; display: block">
+        <div id="colorbox" class="k-primary" style="display: inline-block ; width: 20px; height: 20px; background: #ffffff"></div>
+        <div style="display: inline-block"> <input id="listmarks" placeholder="Выберите пометку..." style="width: 250px;" /></div>
+        <div style="display: inline-block; width: 60px; align-content: right"><button class="k-primary k-button" style="width: 28px; height: 28px" onclick="ClickAddMark(true)">+</button></div>
+    </div>
+    <div id="addmark" style="height: 60px; display: none">
+        <input id="editor_mark" style="width: 200px; height:22px" aria-label="editor">
+        <input id="picker" />
+        <button class="k-primary k-button" style="width: 28px; height: 28px" onclick="ClickAddMark(false)">-</button>
+    </div>
+    <div style="align-items: center">
+        <button id="okButton_mark">Ok</button>
+    </div>
+</div>
+
+<div id="window_login" style="display: none">
+    <div class="km-listview-wrapper">
+        <div style="height: 50px">
+            <div style="display: inline-block; width:70px">Логин:</div> <div style="display: inline-block; width: 270px"><input type="text" id="username" name="login" autocomplete="on" value="" /></div>
+        </div>
+        <div style="height: 50px">
+            <div style="display: inline-block; width:74px">Пароль:</div><div style="display: inline-block; width: 270px"><input type="password" id="password" autocomplete="on" value="" /></div>
+        </div>
+    </div>
+    <div id="login-message" style="height: 15px"></div><div style="height:5px"></div>
+    <div style="height: 15px"><button id="Button_login">Ok</button></div>
+
+</div>
+
+
+
+<div id="window_filter" style="display: none">
+    <div>
+        <div style="display: inline-block; height: 60px; width: 270px">
+            <div style="display: inline-block; height: 20px">С:</div><div>  <input id="datepickerstart" title="datepicker" style="display: inline-block; width: 250px" /></div>
+        </div>
+        <div style="display: inline-block; height: 60px; width: 270px">
+            <div style="display: inline-block; height: 20px">ПО:</div><div>  <input id="datepickerend" title="datepicker" style="display: inline-block; width: 250px" /></div>
+        </div>
+    </div>
+    <div style="height: 15px"><button id="Button_filter" class="btn btn-info" onclick="OkButtonFilter()">Ok</button></div>
+
+</div>
+
+<div style="display: none">
+    <div class="question_editor">
+        <div style="display: inline-block">
+            <div class="list1"></div>
+            <span>Text 1</span>
+        </div>
+        <div style="display: inline-block">
+            <div class="list2"></div>
+            <span>Text 2</span>
+        </div>
+    </div>
+</div>
+
+<div id="window_new_checklist" style="text-align: center; display: none">
+    <div style="width: 320px">
+        <div style="text-align: center; height: 40px">
+            <input id="checklistname" type="text" size="40">
+        </div>
+        <div style="text-align: right">
+            <button class="btn btn-outline-primary" onclick="NewCheckList()">Ok</button>
+        </div>
+    </div>
+
+</div>
+
+
+<body>
+
+</body>
+</html>

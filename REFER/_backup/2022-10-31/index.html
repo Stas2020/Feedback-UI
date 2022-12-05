@@ -1,0 +1,493 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S2010 - Pahar References</title>
+
+
+
+    <link href="../styles/kendo.common.min.css" rel="stylesheet">
+    <link href="../styles/kendo.rtl.min.css" rel="stylesheet">
+    <link href="../styles/kendo.default.min.css" rel="stylesheet">
+    <link href="../styles/kendo.default.mobile.min.css" rel="stylesheet">
+
+    <script src="../js/sha256.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="../js/jszip.min.js"></script>
+    <script src="../js/kendo.all.min.js"></script>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <script src="refer.js"></script>
+
+
+    <style>
+        div.pahRefID {
+            display: none;
+        }
+        div.pahRefPrior {
+            display: none;
+        }
+    </style>
+    
+
+
+
+
+</head>
+<body style="padding-top:5px; padding-left:5px">
+
+
+    <div id="window_login" style="display: none">
+        <div class="km-listview-wrapper">
+            <div style="height: 50px">
+                <div style="display: inline-block; width:70px">Логин:</div> <div style="display: inline-block; width: 270px"><input type="text" id="username" name="login" autocomplete="on" value="" /></div>
+            </div>
+            <div style="height: 50px">
+                <div style="display: inline-block; width:74px">Пароль:</div><div style="display: inline-block; width: 270px"><input type="password" id="password" autocomplete="on" value="" /></div>
+            </div>
+        </div>
+        <div id="login-message" style="height: 15px"></div><div style="height:5px"></div>
+        <div style="height: 15px"><button id="Button_login">Ok</button></div>
+    </div>
+
+
+    <div id="window_dish_koeff_edit" style="display: none">
+        <div class="km-listview-wrapper">
+            <div style="height: 50px">
+                <div style="display: inline-block; width:80px">Баркод:</div> <div style="display: inline-block; width: 100px"><input type="text" id="dish_koeff_barcod" style="width:100px" value="" /></div>
+            </div>
+            <div style="height: 50px">
+                <div style="display: inline-block; width:84px">Значение:</div><div style="display: inline-block; width:100px"><input type="text" id="dish_koeff_value" style="width:100px" value="" /></div>
+            </div>
+        </div>
+        <div style="height: 15px;padding-right:4px"><button id="Button_DK_save" style="float:right; width:100px">Применить</button></div>
+    </div>
+
+
+    <div id="window_pah_ref_edit" style="display: none">
+        <div class="km-listview-wrapper">
+            <div style="height: 50px" id="pah_ref_dep_div">
+                <div style="display: none">
+                    <input type="text" id="pah_ref_id" style="width:100px" value="" />
+                    <input type="text" id="pah_ref_prior" style="width:100px" value="" />
+                </div>
+                <div style="display: inline-block; width:90px">Ресторан:</div> <div style="display: inline-block; width: 100px"><input id="pah_ref_dep" placeholder="Выберите ресторан" style="width: 220px;"></div>
+            </div>
+            <div style="height: 50px" id="pah_ref_place_div">
+                <div style="display: inline-block; width:90px">Локация:</div> <div style="display: inline-block; width: 100px"><input id="pah_ref_place" placeholder="Выберите локацию" style="width: 220px;"></div>
+            </div>
+            <div style="height: 50px" id="pah_ref_month_div">
+                <div style="display: inline-block; width:90px">Месяц:</div> <div style="display: inline-block; width: 100px"><input id="pah_ref_month" placeholder="Выберите месяц" style="width: 220px;"></div>
+            </div>
+            <div style="height: 50px">
+                <div style="display: inline-block; width:90px">Значение:</div>
+                <div style="display: inline-block; width:114px"><input id="pah_ref_eq_type" placeholder="<?>" style="width: 108px;"></div>
+                <div style="display: inline-block; width:75px"><input type="text" id="pah_ref_value" style="width:67px" value="" /></div>
+                <div style="display: inline-block; width:15px"><b id="pah_ref_percent_label">&nbsp;</b></div>
+            </div>
+        </div>
+        <div style="height: 15px;padding-right:4px"><button id="Button_pah_ref_save" style="float:right; width:100px">Ок</button></div>
+    </div>
+
+
+
+    <div id="window_staffturnover_deps" style="display: none">
+        <div>
+            <div class="container-fluid box_staffturnover_deps" style="width:700px; height: 710px;" id="box_staffturnover_deps">
+                <div id="grid_staffturnover_deps"></div>
+            </div>
+
+            <div style="height: 50px; padding-left:45px">
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" onclick="StaffTurnOverDepsSelectAll()">ВСЕ</button>
+                </div>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" onclick="StaffTurnOverDepsSelectAero()">Аэро</button>
+                </div>
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" onclick="StaffTurnOverDepsSelectCity()">Город</button>
+                </div>
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" onclick="StaffTurnOverDepsDeselectAll()">Снять все</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="window_staffvacation_dates" style="display: none">
+        <div>
+            <div style="height: 90px; padding-left:45px">
+                <div style="display: block; height: 40px; width: 300px">
+                    <div style="display: inline-block; height: 20px; width: 30px">С:</div><div style="display: inline-block">  <input id="datepickerstart_staffvacation" title="datepicker" style="display: inline-block; width: 250px" /></div>
+                </div>
+                <div style="display: block; height: 40px; width: 300px">
+                    <div style="display: inline-block; height: 20px; width: 30px">ПО:</div><div style="display: inline-block">  <input id="datepickerend_staffvacation" title="datepicker" style="display: inline-block; width: 250px" /></div>
+                </div>
+            </div>
+            <div style="height: 50px; padding-left:45px">
+                <input style="display:none" type="text" id="staffvacation_staffnum" value="" />
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" onclick="StaffVacationDatesAdd()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="warning_no_access" style="border: solid red 2px; padding: 5px; width: 950px; text-align: center;margin-left:auto;margin-right:auto;margin-bottom:10px; display: none">
+        <h5 style="color:red">Внимание!</h5>
+        <h5 style="color:red">Для редактирования данных авторизуйтесь с персональной (именной) учетной записью</h5>
+    </div>
+
+    <ul id="tabs" class="nav nav-tabs" style="display:none">
+        <div style="width: 50px; margin-left: auto; margin-right: 15px;margin-bottom:5px ">
+            <!--<img width="39px;" src="https://i.yapx.ru/PH3iC.jpg" style="cursor: pointer;" onclick="window.open('https://s2010/feedback/technolog','_self')" />-->
+        </div>
+        <li id="tab_dish_koef" class="nav-item"><a class="nav-link active" data-toggle="tab" role="tab" href="#tabs-1">Коэффициенты KissTheCook</a></li>
+        <li id="tab_references" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-2">Референсные значения</a></li>
+        <li id="tab_outer_refers" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-3">Внешние показатели</a></li>
+        <li id="tab_rest_work_time" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-4">Время работы ресторанов</a></li>
+        <li id="tab_staffing" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-5">Штатное расписание</a></li>
+        <li id="tab_staffing" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-6">Текучесть кадров (проверка данных стафф)</a></li>
+        <li id="tab_staffing" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-7">Декретные и отпуска</a></li>
+        <li id="tab_staffing" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-8">Отпуска</a></li>
+        <div style="width: 100px; margin-left: auto; margin-right:10px">
+            <button id="exit" class="btn btn-outline-primary k-button" data-role="button" role="button" aria-disabled="false" tabindex="0">Выход</button>
+        </div>
+    </ul>
+
+    <div class="tab-content" id="tab-content" style="display:none">
+        <div class="tab-pane fade show active" id="tabs-1">
+            <!-- KissTheCook koefs -->
+
+            <div class="container-fluid" style="height: 750px; width: 700px">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshDishKoefs" onclick="RefreshDishKoefs()">Обновить</button>
+                    </div>
+
+                    <!--
+                    <div style="display: inline-block;height: 35px; ">
+
+                        <div style="display: inline-block; height: 30px; width: 175px">
+                            <div style="display: inline-block; height: 20px; width: 20px">С:</div><div style="display: inline-block">  <input id="datepickerstart_recipe_changes" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+                        <div style="display: inline-block; height: 30px; width: 185px">
+                            <div style="display: inline-block; height: 20px; width: 30px">ПО:</div><div style="display: inline-block">  <input id="datepickerend_recipe_changes" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+
+                        <div style="display: inline-block; width: 185px; padding: 5px;"><input id="recipe_changes_deps" placeholder="Все подразделения" style="width: 180px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 250px; padding: 5px;">Баркод:&nbsp;<input id="recipe_changes_barcode" placeholder="" style="width: 150px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 225px; padding: 5px;">Юзер:&nbsp;<input id="recipe_changes_user" placeholder="" style="width: 150px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 145px; padding: 5px;">Кол-во:&nbsp;<input id="recipe_changes_cnt" placeholder="" style="width: 55px;"></div>
+
+                    </div>
+
+
+
+                        -->
+                    <div style="display: inline-block; width: 230px; float: right">
+                        <button class="btn btn-outline-primary" onclick="UpdateDishBottles()">Импортировать бутылки</button>
+                    </div>
+
+                </div>
+
+
+
+                <div class="container-fluid box_dish_koefs" style="height: 750px;" id="box_dish_koefs">
+                    <div id="grid_dish_koefs"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="tab-pane fade" id="tabs-2">
+            <!-- Writeoff references -->
+
+            <div class="container-fluid" style="height: 750px; width: 1600px">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshWriteoffRefers" onclick="RefreshWriteoffRefers()">Обновить</button>
+                    </div>
+
+                    <div style="display: inline-block; width: 385px; padding: 5px;"><input id="writeoff_refers_rep_types" placeholder="Выберите отчет" style="width: 380px;"></div>
+
+                    <div style="display: inline-block; padding: 5px; margin-left:25px"><h5 style="color:darkred">➔ Чем правее столбец, тем выше приоритет ➔</h5></div>
+
+
+                    <!--
+                    <div style="display: inline-block;height: 35px; ">
+
+                        <div style="display: inline-block; height: 30px; width: 175px">
+                            <div style="display: inline-block; height: 20px; width: 20px">С:</div><div style="display: inline-block">  <input id="datepickerstart_prih" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+                        <div style="display: inline-block; height: 30px; width: 185px">
+                            <div style="display: inline-block; height: 20px; width: 30px">ПО:</div><div style="display: inline-block">  <input id="datepickerend_prih" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+
+                        <div style="display: inline-block; width: 185px; padding: 5px;"><input id="prih_deps" placeholder="Все подразделения" style="width: 180px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 250px; padding: 5px;">Баркод:&nbsp;<input id="prih_barcode" placeholder="" style="width: 150px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 245px; padding: 5px;">Кол-во продукции:&nbsp;<input id="prih_prod_cnt" placeholder="" style="width: 85px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 185px; padding: 5px;">Кол-во строк:&nbsp;<input id="prih_cnt" placeholder="" style="width: 55px;"></div>
+
+                    </div>
+                        -->
+                </div>
+
+
+
+                <div class="container-fluid box_writeoff_refers" style="height: 750px;" id="box_writeoff_refers">
+                    <div id="grid_writeoff_refers"></div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+
+
+        <div class="tab-pane fade" id="tabs-3">
+            <!-- Outer References -->
+
+            <div class="container-fluid" style="height: 750px; width: 700px">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshOuterRefers" onclick="RefreshOuterRefers()">Обновить</button>
+                    </div>
+
+                    <div style="display: inline-block; width: 185px; padding: 5px;"><input id="outer_refers_month" placeholder="Выберите месяц" style="width: 180px;"></div>
+
+                    <div style="display: inline-block; width: 335px; padding: 5px;margin-left:7px"><input id="outer_refers_rep_types" placeholder="Выберите показатель" style="width: 330px;"></div>
+
+
+                </div>
+
+
+
+                <div class="container-fluid box_outer_refers" style="height: 750px;" id="box_outer_refers">
+                    <div id="grid_outer_refers"></div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="tab-pane fade" id="tabs-4">
+            <!-- Working Times -->
+
+            <div class="container-fluid" style="height: 750px; width: 700px">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshRestWorkTime" onclick="RefreshRestWorkTime()">Обновить</button>
+                    </div>
+
+                </div>
+
+
+
+                <div class="container-fluid box_rest_work_time" style="height: 750px;" id="box_rest_work_time">
+                    <div id="grid_rest_work_time"></div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <div class="tab-pane fade" id="tabs-5">
+            <!-- Staffing -->
+
+            <div class="container-fluid" style="height: 750px; width: 95%px">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshStaffing" onclick="RefreshStaffing()">Обновить</button>
+                    </div>
+
+                </div>
+
+
+
+                <div class="container-fluid box_staffing" style="height: 750px;" id="box_staffing">
+                    <div id="grid_staffing"></div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <div class="tab-pane fade" id="tabs-6">
+            <!-- StaffingTurnover -->
+
+            <div class="container-fluid" style="height: 750px; width: 1600px">
+
+                <div style="display: block; height: 90px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 130px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshStaffingTurnover" onclick="RefreshStaffTurnover()">Построить</button>
+                    </div>
+
+                    С:
+                    <input id="datepickerstart_staff_turnover" title="datepicker" style="display: inline-block; width: 140px" />
+                    По:
+                    <input id="datepickerend_staff_turnover" title="datepicker" style="display: inline-block; width: 140px" />
+
+                    <!-- <div style="display: none; width: 185px; padding: 5px;"><input id="staff_turnover_month" placeholder="Выберите месяц" style="width: 180px;" disabled="disabled"></div>
+
+                    <div style="display: none; width: 185px; padding: 5px;"><input id="staff_turnover_deps" placeholder="Все подразделения" style="width: 180px;"></div>-->
+
+                    <div style="display: inline-block; width: 103px; padding: 5px;">
+                        <a style='cursor:pointer;color:DarkBlue;text-decoration: underline;' onclick='SelectStaffTurnoverDeps()'>Рестораны:</a>&nbsp;
+                        <input id="staff_turnover_deps" readonly="readonly" value="Все" style="width: 93px;">
+                    </div>
+
+                    <!--<span style="color:red;margin-left:7px;margin-right:15px">Отображаются только присутствующие в "Штатном расписании" должности</span>-->
+
+                    <div style="display: inline-block; height: 35px; width: 150px;margin-left:15px">
+                        <button class="btn btn-primary" onclick="StaffTurnoverModeChange(0)">По ресторанам</button>
+                    </div>
+                    <div style="display: inline-block; height: 35px; width: 150px;">
+                        <button class="btn btn-primary" onclick="StaffTurnoverModeChange(1)">По должностям</button>
+                    </div>
+
+                </div>
+
+
+                <div class="container-fluid box_staff_turnover_report" style="height: 750px;" id="box_staff_turnover_report">
+                    <div id="grid_staff_turnover_report"></div>
+                </div>
+
+                <div style="display: block; height: 100px; width:100%;">
+                    &nbsp;
+                </div>
+                <!--
+                    <div style="display: block; height: 38px; padding-top: 5px;">
+
+                        <div style="display: inline-block; height: 35px; width: 130px; padding-left: 215px;">
+                            <button class="btn btn-outline" onclick="StaffTurnoverEmployeeSortChange(0)">Ресторан/должность/работник</button>
+                        </div>
+                        <div style="display: inline-block; height: 35px; width: 130px; padding-left: 215px;">
+                            <button class="btn btn-outline" onclick="StaffTurnoverEmployeeSortChange(1)">По должностям</button>
+                        </div>
+                        <div style="display: inline-block; height: 35px; width: 130px; padding-left: 215px;">
+                            <button class="btn btn-outline" onclick="StaffTurnoverEmployeeSortChange(2)">По работникам</button>
+                        </div>
+
+                    </div>
+                -->
+
+                <div class="container-fluid box_staff_turnover_employyes" style="height: 750px;" id="box_staff_turnover_employyes">
+                    <div id="grid_staff_turnover_employyes"></div>
+                </div>
+
+                <div style="display: block; height: 25px; width:100%;">
+                    &nbsp;
+                </div>
+            </div>
+
+
+        </div>
+
+
+
+
+        <div class="tab-pane fade" id="tabs-7">
+            <!-- Decret -->
+
+            <div class="container-fluid" style="height: 750px; width: 1200px">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshStaffDecret" onclick="RefreshStaffDecret()">Обновить</button>
+                    </div>
+
+                </div>
+
+
+
+                <div class="container-fluid box_staff_decret" style="height: 750px;" id="box_staff_decret">
+                    <div id="grid_staff_decret"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="tab-pane fade" id="tabs-8">
+            <!-- Vacation -->
+
+            <div class="container-fluid" style="height: 750px; width: 95%">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshStaffVacation" onclick="RefreshStaffVacation()">Обновить</button>
+                    </div>
+
+                    <div style="display: inline-block; width:90px">Ресторан:</div> <div style="display: inline-block; width: 100px"><input id="staff_vacation_dep" placeholder="Все" style="width: 220px;"></div>
+
+                </div>
+
+
+
+                <div class="container-fluid box_staff_vacation" style="height: 750px;" id="box_staff_vacation">
+                    <div id="grid_staff_vacation"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!--
+            </div>
+    -->
+
+
+
+
+
+
+
+</body>
+</html>

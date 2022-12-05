@@ -1,0 +1,445 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S2010 - технологи</title>
+
+
+
+<link href="../styles/kendo.common.min.css" rel="stylesheet">
+<link href="../styles/kendo.rtl.min.css" rel="stylesheet">
+<link href="../styles/kendo.default.min.css" rel="stylesheet">
+<link href="../styles/kendo.default.mobile.min.css" rel="stylesheet">
+
+<script src="../js/sha256.js"></script>
+<script src="../js/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jszip.min.js"></script>
+<script src="../js/kendo.all.min.js"></script>
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<script src="techno.js"></script>
+
+
+
+
+
+
+
+
+</head>
+<body style="padding-top:5px; padding-left:5px">
+    <!--<div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">-->
+    <!--
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+    </button>
+        -->
+    <!--
+    <a class="navbar-brand" href="">Пользователи</a>
+    <a class="navbar-brand" href="">Роли</a>
+    <a class="navbar-brand" href="">Функции</a>
+    <a class="navbar-brand" href="">Домены функций</a>
+        -->
+    <!--</div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container body-content">-->
+    <!--
+    <hr />
+    <footer>
+        <p>&copy; 2021 - My ASP.NET Application</p>
+    </footer>
+    -->
+    <!--</div>-->
+
+
+
+    <ul id="context-menu-prtype" style="display: none">
+        <li>
+            Создать на сегодняшнюю дату
+            <ul>
+                <li onclick='SetPrTypeSend("заказ", false)'>Заказ</li>
+                <li onclick='SetPrTypeSend("впрок", false)'>Впрок</li>
+            </ul>
+        </li>
+        <li>
+            Перезаписать последнюю существующую (+создать сегодн.)
+            <ul>
+                <li onclick='SetPrTypeSend("заказ", true)'>Заказ</li>
+                <li onclick='SetPrTypeSend("впрок", true)'>Впрок</li>
+            </ul>
+        </li>
+    </ul>
+
+
+    <script id="detail-template" type="text/x-kendo-template">
+        <div class="userRoleFuncs">
+
+        </div>
+    </script>
+
+    <div id="window_login" style="display: none">
+        <div class="km-listview-wrapper">
+            <div style="height: 50px">
+                <div style="display: inline-block; width:70px">Логин:</div> <div style="display: inline-block; width: 270px"><input type="text" id="username" name="login" autocomplete="on" value="" /></div>
+            </div>
+            <div style="height: 50px">
+                <div style="display: inline-block; width:74px">Пароль:</div><div style="display: inline-block; width: 270px"><input type="password" id="password" autocomplete="on" value="" /></div>
+            </div>
+        </div>
+        <div id="login-message" style="height: 15px"></div><div style="height:5px"></div>
+        <div style="height: 15px"><button id="Button_login">Ok</button></div>
+    </div>
+
+
+
+
+    <div id="window_technology" style="display: none">
+        <div>
+            <div style="height: 50px; padding-left:45px">
+                <div style="display: inline-block; width:130px">Блюдо:</div><div style="display: inline-block; width: 350px"><input type="text" style="width:330px;" id="technology_name" /></div>
+                <div style="display: inline-block; width:100px">На кол-во:</div><div style="display: inline-block; width: 100px"><input type="text" style="width:80px;" id="technology_quant" /></div>
+            </div>
+            <div style="height: 50px; padding-left:45px">
+                <div style="display: inline-block; width:130px">№ калькуляции:</div><div style="display: inline-block; width: 220px"><input type="text" id="technology_calc_num" /></div>
+                <div style="display: inline-block; width:130px">Дата привязки:</div><div style="display: inline-block; width: 200px"><input type="text" id="technology_workdate" /></div>
+            </div>
+            <div style="height: 50px; padding-left:45px">
+                <div style="display: inline-block; width:130px">Описание:</div><div style="display: inline-block; width: 220px"><input type="text" id="technology_description" /></div>
+                <div style="display: inline-block; width:130px">Автор:</div><div style="display: inline-block; width: 200px"><input type="text" id="technology_author" /></div>
+            </div>
+            <div class="container-fluid box_technology" style="width:700px; height: 430px;" id="box_technology">
+                <div id="grid_technology"></div>
+            </div>
+            <div style="height: 170px">
+                <div style="display: inline-block; width: 700px; height:200px; padding-left:38px"><textarea style="width: 694px; height:160px" type="text" id="technology_text"></textarea></div>
+            </div>
+            <div id="print_button_test" style="height: 20px; padding-left:45px; display:none">
+                <button class="btn btn-outline-primary" onclick="print('window_technology','Technology')">Печать</button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+    <ul id="tabs" class="nav nav-tabs" style="display:none">
+        <div style="width: 50px; margin-left: auto; margin-right: 15px;margin-bottom:5px ">
+            <img width="39px;" src="https://i.yapx.ru/PH3iC.jpg" style="cursor: pointer;" onclick="window.open('https://s2010/feedback/technolog','_self')" />
+        </div>
+        <li id="tab_recipe_changes" class="nav-item"><a class="nav-link active" data-toggle="tab" role="tab" href="#tabs-1">Изменения техкарт</a></li>
+        <li id="tab_food_prih" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-3">Приходные накладные</a></li>
+        <li id="tab_food_prorab" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-4">Проработки</a></li>
+        <li id="tab_food_proizv" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-5" style="color:gray">Акты производства</a></li>
+        <li id="tab_food_spis" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-6">Списания</a></li>
+        <li id="tab_food_prtype" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-7">Тип пр-ва</a></li>
+        <li id="tab_vol_forecast" class="nav-item" style="display: block;"><a class="nav-link" data-toggle="tab" role="tab" href="https://s2010/feedback/forecast" onclick="window.open('https://s2010/feedback/forecast','_self')">Прогноз продаж</a></li>
+        <div style="width: 100px; margin-left: auto; margin-right:10px">
+            <button id="exit" class="btn btn-outline-primary k-button" data-role="button" role="button" aria-disabled="false" tabindex="0">Выход</button>
+        </div>
+    </ul>
+
+    <div class="tab-content" id="tab-content" style="display:none">
+        <div class="tab-pane fade show active" id="tabs-1">
+            <!-- Recipe Changes -->
+
+            <div class="container-fluid" style="height: 750px; width: 1600px">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshRecipeChanges" onclick="RefreshRecipeChanges()">Обновить</button>
+                    </div>
+
+
+                    <div style="display: inline-block;height: 35px; ">
+
+                        <div style="display: inline-block; height: 30px; width: 175px">
+                            <div style="display: inline-block; height: 20px; width: 20px">С:</div><div style="display: inline-block">  <input id="datepickerstart_recipe_changes" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+                        <div style="display: inline-block; height: 30px; width: 185px">
+                            <div style="display: inline-block; height: 20px; width: 30px">ПО:</div><div style="display: inline-block">  <input id="datepickerend_recipe_changes" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+
+                        <div style="display: inline-block; width: 185px; padding: 5px;"><input id="recipe_changes_deps" placeholder="Все подразделения" style="width: 180px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 250px; padding: 5px;">Баркод:&nbsp;<input id="recipe_changes_barcode" placeholder="" style="width: 150px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 225px; padding: 5px;">Юзер:&nbsp;<input id="recipe_changes_user" placeholder="" style="width: 150px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 145px; padding: 5px;">Кол-во:&nbsp;<input id="recipe_changes_cnt" placeholder="" style="width: 55px;"></div>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="container-fluid box_recipe_changes" style="height: 750px;" id="box_recipe_changes">
+                    <div id="grid_recipe_changes"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="tab-pane fade" id="tabs-3">
+            <!-- Prih -->
+
+            <div class="container-fluid" style="height: 750px; width: 1600px">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshPrih" onclick="RefreshPrih()">Обновить</button>
+                    </div>
+
+
+                    <div style="display: inline-block;height: 35px; ">
+
+                        <div style="display: inline-block; height: 30px; width: 175px">
+                            <div style="display: inline-block; height: 20px; width: 20px">С:</div><div style="display: inline-block">  <input id="datepickerstart_prih" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+                        <div style="display: inline-block; height: 30px; width: 185px">
+                            <div style="display: inline-block; height: 20px; width: 30px">ПО:</div><div style="display: inline-block">  <input id="datepickerend_prih" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+
+                        <div style="display: inline-block; width: 185px; padding: 5px;"><input id="prih_deps" placeholder="Все подразделения" style="width: 180px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 250px; padding: 5px;">Баркод:&nbsp;<input id="prih_barcode" placeholder="" style="width: 150px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 245px; padding: 5px;">Кол-во продукции:&nbsp;<input id="prih_prod_cnt" placeholder="" style="width: 85px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 185px; padding: 5px;">Кол-во строк:&nbsp;<input id="prih_cnt" placeholder="" style="width: 55px;"></div>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="container-fluid box_prih" style="height: 750px;" id="box_prih">
+                    <div id="grid_prih"></div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <div class="tab-pane fade" id="tabs-4">
+            <!-- Pror -->
+
+            <div class="container-fluid" style="height: 750px; width: 1600px">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshProrab" onclick="RefreshProrab()">Обновить</button>
+                    </div>
+
+
+                    <div style="display: inline-block;height: 35px; ">
+
+                        <div style="display: inline-block; height: 30px; width: 175px">
+                            <div style="display: inline-block; height: 20px; width: 20px">С:</div><div style="display: inline-block">  <input id="datepickerstart_prorab" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+                        <div style="display: inline-block; height: 30px; width: 185px">
+                            <div style="display: inline-block; height: 20px; width: 30px">ПО:</div><div style="display: inline-block">  <input id="datepickerend_prorab" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+
+                        <div style="display: inline-block; width: 185px; padding: 5px;"><input id="prorab_deps" placeholder="Все подразделения" style="width: 180px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 225px; padding: 5px;">Баркод:&nbsp;<input id="prorab_barcode" placeholder="" style="width: 150px;"></div>
+
+
+                        <div style="display: inline-block; width: 145px; padding: 0px;"><input id="prorab_barcode_mode" placeholder="Вход и выход" style="width: 140px;"></div>
+                        &nbsp;
+
+                        <div style="display: inline-block; width: 230px; padding: 5px;"><input type='checkbox' id='prorab_show_out' /> Показывать доли выхода</div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 145px; padding: 5px;">Кол-во:&nbsp;<input id="prorab_cnt" placeholder="" style="width: 55px;"></div>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="container-fluid box_prorab" style="height: 750px;" id="box_prorab">
+                    <div id="grid_prorab"></div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <div class="tab-pane fade" id="tabs-5">
+            <!-- AktPr -->
+
+            <div class="container-fluid" style="height: 750px; width: 1600px">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshProizv" onclick="RefreshProizv()">Обновить</button>
+                    </div>
+
+
+                    <div style="display: inline-block;height: 35px; ">
+
+                        <div style="display: inline-block; height: 30px; width: 175px">
+                            <div style="display: inline-block; height: 20px; width: 20px">С:</div><div style="display: inline-block">  <input id="datepickerstart_proizv" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+                        <div style="display: inline-block; height: 30px; width: 185px">
+                            <div style="display: inline-block; height: 20px; width: 30px">ПО:</div><div style="display: inline-block">  <input id="datepickerend_proizv" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+
+                        <div style="display: inline-block; width: 185px; padding: 5px;"><input id="proizv_deps" placeholder="Все подразделения" style="width: 180px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 250px; padding: 5px;">Баркод:&nbsp;<input id="proizv_barcode" placeholder="" style="width: 150px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 145px; padding: 5px;">Кол-во:&nbsp;<input id="proizv_cnt" placeholder="" style="width: 55px;"></div>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="container-fluid box_proizv" style="height: 750px;" id="box_proizv">
+                    <div id="grid_proizv"></div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <div class="tab-pane fade" id="tabs-6">
+            <!-- Spis -->
+
+            <div class="container-fluid" style="height: 750px; width: 1600px">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshSpis" onclick="RefreshSpis()">Обновить</button>
+                    </div>
+
+
+                    <div style="display: inline-block;height: 35px; ">
+
+                        <div style="display: inline-block; height: 30px; width: 175px">
+                            <div style="display: inline-block; height: 20px; width: 20px">С:</div><div style="display: inline-block">  <input id="datepickerstart_spis" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+                        <div style="display: inline-block; height: 30px; width: 185px">
+                            <div style="display: inline-block; height: 20px; width: 30px">ПО:</div><div style="display: inline-block">  <input id="datepickerend_spis" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+
+                        <div style="display: inline-block; width: 185px; padding: 5px;"><input id="spis_deps" placeholder="Все подразделения" style="width: 180px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 185px; padding: 5px;"><input id="spis_provs" placeholder="Все причины" style="width: 180px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 150px; padding: 5px;">Баркод:&nbsp;<input id="spis_barcode" placeholder="" style="width: 70px;"></div>
+                        <div style="display: inline-block; width: 195px; padding: 5px;">Кол-во прод:&nbsp;<input id="spis_cnt_prod" placeholder="" style="width: 75px;"></div>
+                        <div style="display: inline-block; width: 145px; padding: 5px;">Сумма:&nbsp;<input id="spis_sum" placeholder="" style="width: 75px;"></div>
+                        &nbsp;
+                        <div style="display: inline-block; width: 125px; padding: 5px;">Строк:&nbsp;<input id="spis_cnt" placeholder="" style="width: 55px;"></div>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="container-fluid box_spis" style="height: 750px;" id="box_spis">
+                    <div id="grid_spis"></div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="tab-pane fade" id="tabs-7">
+            <!-- ProdType -->
+
+            <div class="container-fluid" style="height: 750px; width: 1600px">
+
+                <div style="display: block; height: 50px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshPrType" onclick="RefreshPrType()">Обновить</button>
+                    </div>
+
+
+                    <div style="display: inline-block;height: 35px; ">
+
+                        <div style="display: inline-block; width: 230px; padding: 5px;">Локкод:&nbsp;<input id="prtype_barcode" placeholder="" style="width: 150px;"></div>
+                        &nbsp;
+
+                        <div style="display: inline-block; width: 350px; padding: 5px;">Название:&nbsp;<input id="prtype_barcode_name" placeholder="" style="width: 250px;"></div>
+                        &nbsp;
+
+                        <div style="display: inline-block; height: 35px; width: 180px; padding-left: 15px;">
+                            <button class="btn btn-outline-primary" id="setPrType" onclick="SetPrType()">Назначить тип</button>
+                        </div>
+                    </div>
+
+                </div>
+
+
+
+                <div class="container-fluid box_prtype" style="height: 750px; width: 1600px" id="box_prtype">
+                    <div id="grid_prtype"></div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <!--
+            </div>
+    -->
+
+
+
+
+
+
+
+</body>
+</html>

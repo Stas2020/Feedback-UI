@@ -1,0 +1,460 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index - FeedBack - Admin</title>
+
+
+
+<link href="../styles/kendo.common.min.css" rel="stylesheet">
+<link href="../styles/kendo.rtl.min.css" rel="stylesheet">
+<link href="../styles/kendo.default.min.css" rel="stylesheet">
+<link href="../styles/kendo.default.mobile.min.css" rel="stylesheet">
+
+<script src="../js/sha256.js"></script>
+<script src="../js/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="../js/jszip.min.js"></script>
+<script src="../js/kendo.all.min.js"></script>
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<script src="../admin.js"></script>
+
+
+
+
+
+
+
+
+</head>
+<body style="padding-top:5px; padding-left:5px">
+    <!--<div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">-->
+    <!--
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+    </button>
+        -->
+    <!--
+    <a class="navbar-brand" href="">Пользователи</a>
+    <a class="navbar-brand" href="">Роли</a>
+    <a class="navbar-brand" href="">Функции</a>
+    <a class="navbar-brand" href="">Домены функций</a>
+        -->
+    <!--</div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container body-content">-->
+    <!--
+    <hr />
+    <footer>
+        <p>&copy; 2021 - My ASP.NET Application</p>
+    </footer>
+    -->
+    <!--</div>-->
+
+
+
+    
+
+<script id="detail-template" type="text/x-kendo-template">
+    <div class="userRoleFuncs">
+
+    </div>
+</script>
+
+<div id="window_login" style="display: none">
+    <div class="km-listview-wrapper">
+        <div style="height: 50px">
+            <div style="display: inline-block; width:70px">Логин:</div> <div style="display: inline-block; width: 270px"><input type="text" id="username" name="login" autocomplete="on" value="" /></div>
+        </div>
+        <div style="height: 50px">
+            <div style="display: inline-block; width:74px">Пароль:</div><div style="display: inline-block; width: 270px"><input type="password" id="password" autocomplete="on" value="" /></div>
+        </div>
+    </div>
+    <div id="login-message" style="height: 15px"></div><div style="height:5px"></div>
+    <div style="height: 15px"><button id="Button_login">Ok</button></div>
+</div>
+
+
+
+
+
+<div id="window_user_deps" style="display: none">
+    <div>
+        <div style="display: inline-block; height: 60px; width: 270px">
+            <div style="height: 20px">Добавить подразделение</div>
+            <div style='width:350px'>
+                <div style='display:inline;float:left;width: 260px'>
+                    <input id="user_subdivision_add" placeholder="Выберите подразделение..." style="width: 250px;" />
+                </div>
+                <div style='display:inline;float:right'>
+                    <button class='k-primary k-button' id="button_user_dep_add">Добавить</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: inline-block; width: 270px">
+            <div style="height: 20px">Подразделения пользователя</div>
+            <div><input id="user_subdivisions" placeholder="Прикреплен к подразделениям..." style="height: 200px; width: 350px;" /></div>
+        </div>
+        <div style="height:8px"></div>
+        <div style='display:inline-block;width:100%'>
+            <div id="userDeps-message" style='display:inline;height: 15px;float:left;width:240px;color:red'>
+            </div>
+            <div style='display:inline;float:right'>
+                <button class='k-primary k-button' id="button_user_dep_delete">Удалить</button>
+            </div>
+        </div>
+        <div style="height:8px"></div>
+        <div style="width: 100%; ">
+            <div style="display: inline-block;"><button id="closeButtonUserDeps" style="width: 200px; height: 40px">Закрыть</button></div>
+        </div>
+    </div>
+</div>
+
+
+
+<div id="window_user" style="display: none">
+    <div style='width:100%'>
+
+        <table border="0" style="">
+            <tr>
+                <td style="height: 52px">
+                    <div style="display: inline-block; width:70px">Логин:</div> <div style="display: inline-block"><input type="text" id="user_login" style="width: 242px;" name="login" autocomplete="on" value="" /></div>
+                </td>
+                <td>
+                    <div style="display: inline-block; width:74px">Пароль:</div><div style="display: inline-block"><input type="password" id="user_password" style="width: 242px;" autocomplete="on" value="" /></div>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 85px">
+                    <div style="height: 20px">Роль пользователя</div>
+                    <div style='width:270px'>
+                        <div style='display:inline;float:left;width: 270px'>
+                            <input id="user_role_select" placeholder="Выберите роль..." style="width: 250px;" />
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div id="user_change_pass_button" style='display:none;float:right'> <button class='k-primary k-button' id="button_user_change_pass" style="margin-top: 18px;">Задать пароль</button> </div>
+                    <div id="user_change_pass_input" style="display:inline-block">Повторите пароль:<div style="display: inline-block"><input type="password" id="user_password_2" style="width:242px" autocomplete="on" value="" /></div></div>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 55px">
+                    <div style="display: inline-block; width:70px">Имя:</div> <div style="display: inline-block; width: 242px"><input type="text" id="user_first_name" style="width:242px" autocomplete="on" value="" /></div>
+                </td>
+                <td>
+                    <div style="display: inline-block; width:74px">Фамилия:</div><div style="display: inline-block; width: 242px"><input type="text" id="user_last_name" style="width:242px" autocomplete="on" value="" /></div>
+                </td>
+            </tr>
+        </table>
+
+        <div style="height:12px"></div>
+
+        <div style='display:inline;margin-left:5px'>
+            <input type="checkbox" id="user_is_active" checked /> Пользователь активен
+        </div>
+
+        <div style='display:inline;'>
+            <div id="user-message" style='display:inline;height: 15px;float:right;width:auto;color:red'></div>
+        </div>
+
+        <div style="height:20px"></div>
+
+        <div style="width: 100%; ">
+            <div style="display: inline-block;"><button id="okButtonUser" style="width: 200px; height: 40px">Сохранить</button></div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+<div id="window_func_checks" style="display: none">
+    <div>
+        <div style="display: inline-block; height: 60px; width: 270px">
+            <div style="height: 20px">Добавить CheckList</div>
+            <div style='width:350px'>
+                <div style='display:inline;float:left;width: 260px'>
+                    <input id="func_checklist_add" placeholder="Выберите checkList..." style="width: 250px;" />
+                </div>
+                <div style='display:inline;float:right'>
+                    <button class='k-primary k-button' id="button_func_check_add">Добавить</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: inline-block; width: 270px">
+            <div style="height: 20px">Список CheckLists функции</div>
+            <div><input id="func_checklists" placeholder="Содержит CheckLists..." style="height: 200px; width: 350px;" /></div>
+        </div>
+        <div style="height:8px"></div>
+        <div style='display:inline-block;width:100%'>
+            <div id="funcChecks-message" style='display:inline;height: 15px;float:left;width:240px;color:red'>
+            </div>
+            <div style='display:inline;float:right'>
+                <button class='k-primary k-button' id="button_func_check_delete">Удалить</button>
+            </div>
+        </div>
+        <div style="height:8px"></div>
+        <div style="width: 100%; ">
+            <div style="display: inline-block;"><button id="closeButtonFuncChecks" style="width: 200px; height: 40px">Закрыть</button></div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div id="window_function" style="display: none">
+    <div style='width:100%'>
+        <div style="display: inline-block; height: 60px; width: 242px">
+            <div style="display: inline-block; width:70px">Название</div> <div style="display: inline-block"><input type="text" id="function_name" style="width: 242px;" autocomplete="on" value="" /></div>
+        </div>
+        <div style="display: inline-block; height: 60px; width: 242px">
+            <div style="height: 20px">Домен</div>
+            <div style='width:242px'>
+                <div style='display:inline;float:left;width: 242px'>
+                    <input id="function_domain_select" placeholder="Выберите домен..." style="        width: 242px;" />
+                </div>
+            </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div style='        display: inline-block;'>
+            <div id="func-message" style='display:inline;height: 15px;float:right;width:auto;color:red'></div>
+        </div>
+
+        <div style="height:8px"></div>
+
+        <div style="width: 100%; ">
+            <div style="display: inline-block;"><button id="okButtonFunc" style="width: 200px; height: 42px">Сохранить</button></div>
+        </div>
+    </div>
+</div>
+
+
+
+<div id="window_role" style="display: none">
+    <div style='width:100%'>
+        <div style="display: inline-block; height: 60px; width: 242px">
+            <div style="display: inline-block; width:70px">Название</div> <div style="display: inline-block"><input type="text" id="role_name" style="width: 242px;" autocomplete="on" value="" /></div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div style='        display: inline-block;'>
+            <div id="role-message" style='display:inline;height: 15px;float:right;width:auto;color:red'></div>
+        </div>
+
+        <div style="height:8px"></div>
+
+        <div style="width: 100%; ">
+            <div style="display: inline-block;"><button id="okButtonRole" style="width: 200px; height: 42px">Сохранить</button></div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div id="window_function_rights" style="display: none">
+    <div style='width:100%'>
+
+        <div style="display: inline-block; height: 60px; width: 340px">
+            <div style="height: 20px">Функция (домен)</div>
+            <div style='width:340px'>
+                <div style='display:inline;float:left;width: 340px'>
+                    <input id="function_rights_function_select" placeholder="Выберите функцию..." style="width: 340px;" />
+                </div>
+            </div>
+        </div>
+
+
+        <div style="height: 20px">Права</div>
+        <div style="height:12px"></div>
+        <div style='display:inline;margin-left:5px'>
+            <input type="checkbox" id="function_rights_view" checked /> Просмотр
+        </div>
+        <div style="height:12px"></div>
+        <div style='display:inline;margin-left:5px'>
+            <input type="checkbox" id="function_rights_add" checked /> Добавление
+        </div>
+        <div style="height:12px"></div>
+        <div style='display:inline;margin-left:5px'>
+            <input type="checkbox" id="function_rights_edit" checked /> Редактирование
+        </div>
+        <div style="height:12px"></div>
+        <div style='display:inline;margin-left:5px'>
+            <input type="checkbox" id="function_rights_delete" checked /> Удаление
+        </div>
+
+        <div style='display:inline;'>
+            <div id="func_rights-message" style='display:inline;height: 15px;float:right;width:auto;color:red'></div>
+        </div>
+
+        <div style="height:20px"></div>
+
+        <div style="width: 100%; ">
+            <div style="display: inline-block;"><button id="okButtonFuncRights" style="width: 200px; height: 40px">Сохранить</button></div>
+        </div>
+    </div>
+</div>
+
+
+
+<div id="window_domain" style="display: none">
+    <div style='width:100%'>
+        <div style="display: inline-block; height: 60px; width: 242px">
+            <div style="display: inline-block; width:70px">Название</div> <div style="display: inline-block"><input type="text" id="domain_name" style="width: 242px;" autocomplete="on" value="" /></div>
+        </div>
+
+        <div style="height:8px"></div>
+
+        <div style='display:inline-block;'>
+            <div id="domain-message" style='display:inline;height: 15px;float:right;width:auto;color:red'></div>
+        </div>
+
+        <div style="height:8px"></div>
+
+        <div style="width: 100%; ">
+            <div style="display: inline-block;"><button id="okButtonDomain" style="width: 200px; height: 42px">Сохранить</button></div>
+        </div>
+    </div>
+</div>
+
+
+<ul id="tabs" class="nav nav-tabs" style="display:none">
+    <li id="tab_users" class="nav-item"><a class="nav-link active" data-toggle="tab" role="tab" href="#tabs-1">Пользователи</a></li>
+    <li id="tab_roles" class="nav-item" style="display: block;"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-2">Роли</a></li>
+    <li id="tab_functions" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-3">Функции</a></li>
+    <li id="tab_domains" class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-4">Домены функций</a></li>
+    <div style="width: 100px; margin-left: auto; margin-right:10px">
+        <button id="exit" class="btn btn-outline-primary k-button" data-role="button" role="button" aria-disabled="false" tabindex="0">Выход</button>
+    </div>
+</ul>
+
+<div class="tab-content" id="tab-content" style="display:none">
+    <div class="tab-pane fade show active" id="tabs-1">
+        <!-- Users-->
+
+        <div style="height: 10px; width: 100%;">
+        </div>
+
+        <div id="tools_users" style="height: 90px; width: 100%; display: none;">
+            <button id="button_user_add" class="k-primary k-button" data-role="button" role="button" aria-disabled="false" tabindex="0">Добавить</button>
+            <button id="button_user_refresh" style="margin-left:100px" class="k-primary k-button" data-role="button" role="button" aria-disabled="false" tabindex="0">&#8635;&nbsp;&nbsp;Обновить</button>
+        </div>
+
+        <div style="height: 10px; width: 100%;">
+        </div>
+
+        <div class="container-fluid" style="height: 750px;" id="box_grid">
+            <div id="grid_users" data-role="grid" class="k-grid k-widget k-display-block" style="height: 789px;">
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="tab-pane fade" id="tabs-2">
+        <!-- Roles -->
+
+        <div style="height: 10px; width: 100%;">
+        </div>
+
+        <div id="tools_roles" style="height: 90px; width: 100%; display: none;">
+            <button id="button_role_add" class="k-primary k-button" data-role="button" role="button" aria-disabled="false" tabindex="0">Добавить</button>
+            <button id="button_role_refresh" style="margin-left:100px" class="k-primary k-button" data-role="button" role="button" aria-disabled="false" tabindex="0">&#8635;&nbsp;&nbsp;Обновить</button>
+        </div>
+
+        <div style="height: 10px; width: 100%;">
+        </div>
+
+
+        <div class="container-fluid" style="height: 750px;" id="box_grid">
+            <div id="grid_roles" data-role="grid" class="k-grid k-widget k-display-block" style="height: 789px;">
+
+            </div>
+        </div>
+
+    </div>
+    <div class="tab-pane fade" id="tabs-3">
+        <!-- Functions -->
+
+        <div style="height: 10px; width: 100%;">
+        </div>
+
+        <div id="tools_functions" style="height: 90px; width: 100%; display: none;">
+            <button id="button_function_add" class="k-primary k-button" data-role="button" role="button" aria-disabled="false" tabindex="0">Добавить</button>
+            <button id="button_function_refresh" style="margin-left:100px" class="k-primary k-button" data-role="button" role="button" aria-disabled="false" tabindex="0">&#8635;&nbsp;&nbsp;Обновить</button>
+        </div>
+
+        <div style="height: 10px; width: 100%;">
+        </div>
+
+        <div class="container-fluid" style="height: 750px;" id="box_grid">
+            <div id="grid_functions" data-role="grid" class="k-grid k-widget k-display-block" style="height: 789px;">
+
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="tabs-4">
+        <!-- Domains -->
+
+        <div style="height: 10px; width: 100%;">
+        </div>
+
+        <div id="tools_domains" style="height: 90px; width: 100%; display: none;">
+            <button id="button_domain_add" class="k-primary k-button" data-role="button" role="button" aria-disabled="false" tabindex="0">Добавить</button>
+            <button id="button_domain_refresh" style="margin-left:100px" class="k-primary k-button" data-role="button" role="button" aria-disabled="false" tabindex="0">&#8635;&nbsp;&nbsp;Обновить</button>
+        </div>
+
+        <div style="height: 10px; width: 100%;">
+        </div>
+
+        <div class="container-fluid" style="height: 750px;" id="box_grid">
+            <div id="grid_domains" data-role="grid" class="k-grid k-widget k-display-block" style="height: 789px;">
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<!--
+        </div>
+-->
+
+
+
+
+
+
+    
+</body>
+</html>

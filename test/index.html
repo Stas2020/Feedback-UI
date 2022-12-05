@@ -1,0 +1,628 @@
+﻿
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S2010 - прогноз продаж</title>
+
+
+
+    <link href="../styles/kendo.common.min.css" rel="stylesheet">
+    <link href="../styles/kendo.rtl.min.css" rel="stylesheet">
+    <link href="../styles/kendo.default.min.css" rel="stylesheet">
+    <link href="../styles/kendo.default.mobile.min.css" rel="stylesheet">
+
+    <script src="../js/sha256.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="../js/jszip.min.js"></script>
+    <script src="../js/kendo.all.min.js"></script>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <script src="menu.js"></script>
+
+
+    <style>
+        .k-grid .k-state-selected {
+            background-color: #8AD1FF !important;
+            color: #000000;
+        }
+
+        .k-grid .k-alt.k-state-selected {
+            background-color: #8AD1FF !important;
+            color: #000000;
+        }
+        .k-grid tr.k-detail-row :hover {
+            background: #FFFFFF !important;
+            background-color: #FFFFFF !important;
+        }
+        .k-grid tr.k-detail-row .k-alt:hover {
+            background: #FFFFFF !important;
+            background-color: #FFFFFF !important;
+        }
+        .k-grid tr.k-detail-row {
+            background: #FFFFFF !important;
+            background-color: #FFFFFF !important;
+        }
+        .k-grid tr.k-detail-row .k-alt {
+            background: #FFFFFF !important;
+            background-color: #FFFFFF !important;
+        }
+        tr.selectedTKItem{
+            background: #FFFFBB !important;
+            background-color: #FFFFBB !important;
+        }
+
+        div.sCell {
+            display: inline-block;
+            margin-top: 1px;
+            margin-bottom: 1px;
+            padding: 2px;
+            padding-left: 5px;
+            padding-right: 5px;
+            border: 1px solid #ACD0D1;
+        }
+
+        div.sCellOld {
+            display: inline-block;
+            margin-top: 1px;
+            margin-bottom: 1px;
+            padding: 2px;
+            padding-left: 5px;
+            padding-right: 5px;
+            border: 1px solid #D1ACAC;
+            text-decoration: line-through;
+        }
+        div.sCellUniq {
+            display: inline-block;
+            margin-top: 1px;
+            margin-bottom: 1px;
+            padding: 2px;
+            padding-left: 5px;
+            padding-right: 5px;
+            border: 2px solid #ACD0D1;
+        }
+
+        div.sCellOldUniq {
+            display: inline-block;
+            margin-top: 1px;
+            margin-bottom: 1px;
+            padding: 2px;
+            padding-left: 5px;
+            padding-right: 5px;
+            border: 2px solid #D1ACAC;
+            text-decoration: line-through;
+        }
+        div.sLine {
+            margin-top: 7px;
+            margin-bottom: 7px;
+        }
+        div.calcBySales {
+            display: block;
+            width: 100%;
+            height: 20px;
+        }
+        span.expandSrc {
+            cursor: pointer;
+            color: midnightblue;
+            text-decoration: underline;
+            margin-right: 70px;
+        }
+        span.addToFilter {
+            cursor: pointer;
+            color: DarkBlue;
+            text-decoration: underline;
+        }
+        input.salesByDepsIn {
+        }
+        input.salesByDepsOut {
+        }
+    </style>
+
+
+
+
+
+</head>
+<body style="padding-top:5px; padding-left:5px">
+    <!--<div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">-->
+    <!--
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+    </button>
+        -->
+    <!--
+    <a class="navbar-brand" href="">Пользователи</a>
+    <a class="navbar-brand" href="">Роли</a>
+    <a class="navbar-brand" href="">Функции</a>
+    <a class="navbar-brand" href="">Домены функций</a>
+        -->
+    <!--</div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container body-content">-->
+    <!--
+    <hr />
+    <footer>
+        <p>&copy; 2021 - My ASP.NET Application</p>
+    </footer>
+    -->
+    <!--</div>-->
+
+
+
+
+
+    <script id="detail-template" type="text/x-kendo-template">
+        <div class="calcSources">
+
+        </div>
+    </script>
+
+    <div id="window_login" style="display: none">
+        <div class="km-listview-wrapper">
+            <div style="height: 50px">
+                <div style="display: inline-block; width:70px">Логин:</div> <div style="display: inline-block; width: 270px"><input type="text" id="username" name="login" autocomplete="on" value="" /></div>
+            </div>
+            <div style="height: 50px">
+                <div style="display: inline-block; width:74px">Пароль:</div><div style="display: inline-block; width: 270px"><input type="password" id="password" autocomplete="on" value="" /></div>
+            </div>
+        </div>
+        <div id="login-message" style="height: 15px"></div><div style="height:5px"></div>
+        <div style="height: 15px"><button id="Button_login">Ok</button></div>
+    </div>
+
+
+
+    <div id="window_technology" style="display: none">
+        <div>
+            <div style="height: 50px; padding-left:45px">
+                <div style="display: inline-block; width:130px">Блюдо:</div><div style="display: inline-block; width: 350px"><input type="text" style="width:330px;" id="technology_name" /></div>
+                <div style="display: inline-block; width:100px">На кол-во:</div><div style="display: inline-block; width: 100px"><input type="text" style="width:80px;" id="technology_quant" /></div>
+            </div>
+            <div style="height: 50px; padding-left:45px">
+                <div style="display: inline-block; width:130px">№ калькуляции:</div><div style="display: inline-block; width: 220px"><input type="text" id="technology_calc_num" /></div>
+                <div style="display: inline-block; width:130px">Дата привязки:</div><div style="display: inline-block; width: 200px"><input type="text" id="technology_workdate" /></div>
+            </div>
+            <div style="height: 50px; padding-left:45px">
+                <div style="display: inline-block; width:130px">Описание:</div><div style="display: inline-block; width: 220px"><input type="text" id="technology_description" /></div>
+                <div style="display: inline-block; width:130px">Автор:</div><div style="display: inline-block; width: 200px"><input type="text" id="technology_author" /></div>
+            </div>
+            <div class="container-fluid box_technology" style="width:700px; height: 430px;" id="box_technology">
+                <div id="grid_technology"></div>
+            </div>
+            <div style="height: 170px">
+                <div style="display: inline-block; width: 700px; height:200px; padding-left:38px"><textarea style="width: 694px; height:160px" type="text" id="technology_text"></textarea></div>
+            </div>
+            <div id="print_button_test" style="height: 20px; padding-left:45px; display:none">
+                <button class="btn btn-outline-primary" onclick="print('window_technology','Technology')">Печать</button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <div id="window_forecast_source" style="display: none">
+        <div>
+            <div style="height:45px; padding-left:45px">
+                <div style="display: inline-block; width:80px">Баркод:</div><div style="display: inline-block; width: 390px"><input style="width: 370px" type="text" id="forecast_source_barcod" /></div>
+                <div style="display: inline-block; width:130px">Подразделение:</div><div style="display: inline-block; width: 190px"><input style="width: 170px" type="text" id="forecast_source_dep" /></div>
+                <div style="display: none; width:110px">Касс.группа:</div><div style="display: none; width: 190px"><input style="width: 170px" type="text" id="forecast_source_cass_group" /></div>
+            </div>
+            <div style="display: block; padding-left: 45px; padding-bottom:10px;">Меню:</div>
+            <div class="container-fluid box_forecast_mnu" style="width: 95%; height: 330px;" id="box_forecast_mnu">
+                <div id="grid_forecast_mnu"></div>
+            </div>
+            <div style="display: block; padding-left: 45px; padding-bottom: 10px; ">ДиМы:</div>
+            <div class="container-fluid box_forecast_dim" style="width:95%; height: 330px;" id="box_forecast_dim">
+                <div id="grid_forecast_dim"></div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <div id="window_forecast_dims" style="display: none">
+        <div>
+            <div style="width:100%;height:120px;">
+                <div style="width:400px;height:120px;display:inline-block">
+                    <ul>
+                        <li style="margin-bottom:15px">
+                            <input type="radio" name="forecast_dim_mode" id="forecast_dim_mode_date" class="k-radio" checked="checked" onclick="SelectDimMode(false)">
+                            <label class="k-radio-label" for="forecast_dim_mode_date">Все ДиМы с датой от указанной</label>
+                        </li>
+                        <li style="margin-bottom:15px">
+                            <input type="radio" name="forecast_dim_mode" id="forecast_dim_mode_manual" class="k-radio" onclick="SelectDimMode(true)">
+                            <label class="k-radio-label" for="forecast_dim_mode_manual">Выбрать ДиМы вручную</label>
+                        </li>
+                        <li>
+                            <input type="radio" name="forecast_dim_mode" id="forecast_dim_mode_ignore" class="k-radio" onclick="SelectDimMode(true, true)">
+                            <label class="k-radio-label" for="forecast_dim_mode_ignore">Игнорировать ДиМы</label>
+                        </li>
+                    </ul>
+                </div>
+                <div style="width:200px;height:70px;display:inline-block" id="box_forecast_dims_datepicker">
+                    <input id="datepicker_forecast_dim" title="datepicker" style="display: inline-block; width: 150px" />
+                </div>
+                <div style="width:300px;height:70px;display:none" id="box_forecast_dims_buttons">
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" onclick="ForeCastDimsSelectAll()">ВСЕ</button>
+                    </div>
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" onclick="ForeCastDimsDeselectAll()">Снять все</button>
+                    </div>
+                </div>
+            </div>
+            <div style="width:96%; display:block">
+                <div class="container-fluid box_forecast_dims" style="width:100%; height: 650px;display:none" id="box_forecast_dims">
+                    <div id="grid_forecast_dims"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="window_forecast_filters" style="display: none">
+        <div style="height: 670px;">
+            <div class="container-fluid box_forecast_filters" style="width:400px; height: 670px;display: inline-block;" id="box_forecast_filters">
+                <div id="grid_forecast_filters"></div>
+            </div>
+            <div style="width:310px; height: 600px;display: inline-block;vertical-align:top">
+                <div style="display: inline-block; width: 240px; height: 550px">
+
+                    <div style="display: inline-block; width: 65px; height: 150px;margin-top:5px;margin-bottom:auto">
+                        <div style="display: inline-block; height: 38px; width: 38px; padding: 5px;">
+                            <button class="btn btn-outline-primary" onclick="FilterAppend()">>></button>
+                        </div>
+                        <div style="display: inline-block; height: 38px; width: 38px; padding: 5px;">
+                            <button class="btn btn-outline-primary" onclick="FilterDelete()"><<</button>
+                        </div>
+                    </div>
+
+                    <div style="display: inline-block; width: 160px; height: 150px;margin-top:5px;margin-bottom:auto">
+                        <div style="height: 20px">Показывать только:</div>
+                        <div><input id="forecast_filters_active" placeholder="Выберите..." style="height: 500px; width: 230px;margin-top:5px" /></div>
+
+                    </div>
+                </div>
+                <div style="display: block; width: 200px; height: 70px; padding-left: 125px; ">
+                    <div style="display: block; height: 35px; width: 150px; padding-top: 10px;">
+                        <button class="btn btn-outline-primary" onclick="FilterDeleteAll()">Убрать все</button>
+                    </div>
+                    <div style="display: block; height: 35px; width: 150px; padding-top: 10px;">
+                        <button class="btn btn-primary" onclick="FiltersApply()">Применить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <div id="window_forecast_deps" style="display: none">
+        <div>
+            <div class="container-fluid box_forecast_deps" style="width:700px; height: 610px;" id="box_forecast_deps">
+                <div id="grid_forecast_deps"></div>
+            </div>
+            <div style="height: 50px; padding-left:45px">
+                <p style="color:red">ВНИМАНИЕ! Список может не содержать новых подразделений. <br />При их отсутствии добавите их в поле ниже (через запятую). </p>
+            </div>
+            <div style="height: 50px; padding-left:45px">
+                <div style="display: inline-block; width:80px">Другие:</div><div style="display: inline-block; width: 550px"><input style="width: 550px" type="text" id="forecast_deps_other" /></div>
+            </div>
+
+            <div style="height: 50px; padding-left:45px">
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" onclick="ForeCastDepsSelectAll()">ВСЕ</button>
+                </div>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" onclick="ForeCastDepsSelectAero()">Аэро</button>
+                </div>
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" onclick="ForeCastDepsSelectCity()">Город</button>
+                </div>
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" onclick="ForeCastDepsDeselectAll()">Снять все</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="window_forecast_sales_bydeps" style="display: none">
+        <div>
+            <div class="container-fluid box_forecast_sales_bydeps" style="width:700px; height: 610px;display: inline-block;" id="box_forecast_sales_bydeps">
+                <div id="grid_forecast_sales_bydeps"></div>
+            </div>
+            <div style="width:0px; height: 610px;display: none;padding:10px;overflow-y: scroll;" id="sales_bydeps_calc">
+
+            </div>
+        </div>
+    </div>
+
+
+    <div id="window_forecast_deleted_items" style="display: none">
+        <div>
+            <div class="container-fluid box_forecast_deleted_items" style="width:750px; height: 630px;display: inline-block;" id="box_forecast_deleted_items">
+                <div id="grid_forecast_deleted_items"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="window_forecast_cass_groups" style="display: none">
+        <div>
+            <div class="container-fluid box_forecast_cass_groups" style="width:700px; height: 710px;" id="box_forecast_cass_groups">
+                <div id="grid_forecast_cass_groups"></div>
+            </div>
+
+            <div style="height: 50px; padding-left:45px">
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" onclick="ForeCastCGSelectAll()">ВСЕ</button>
+                </div>
+                &nbsp;&nbsp;&nbsp;
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" onclick="ForeCastCGSSelectDims()">Выбрать&nbsp;ДиМ</button>
+                </div>
+                <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                    <button class="btn btn-outline-primary" onclick="ForeCastCGDeselectAll()">Снять все</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="window_forecast_mnu_dim" style="display: none">
+        <div>
+            <div style="height:45px; padding-left:45px">
+                <div style="display: inline-block; width:85px">№Док:</div><div style="display: inline-block; width: 120px"><input style="width: 90px" type="text" id="forecast_mnu_dim_ndoc" /></div>
+                <div style="display: inline-block; width:90px">Название:</div><div style="display: inline-block; width: 230px"><input style="width: 200px" type="text" id="forecast_mnu_dim_name" /></div>
+                <div style="display: inline-block; width: 60px">Дата:</div><div style="display: inline-block; width: 100px"><input style="width: 90px" type="text" id="forecast_source_mnu_dim_date" /></div>
+            </div>
+            <div style="height:45px; padding-left:45px">
+                <div style="display: inline-block; width:85px">Оператор:</div><div style="display: inline-block; width: 195px"><input style="width: 170px" type="text" id="forecast_source_mnu_dim_oper" /></div>
+                <div style="display: inline-block; width:120px">Коммент Дим:</div><div style="display: inline-block; width: 285px"><input style="width: 280px" type="text" id="forecast_source_mnu_dim_com" /></div>
+            </div>
+            <div style="height:45px; padding-left:45px">
+                <div style="display: inline-block; width: 85px">Версия:</div><div style="display: inline-block; width: 55px"><input style="width: 30px" type="text" id="forecast_source_mnu_dim_vers" /></div>
+                <div style="display: inline-block; width:120px">Коммент Верс:</div><div style="display: inline-block; width: 425px"><input style="width: 420px" type="text" id="forecast_source_mnu_dim_comv" /></div>
+            </div>
+
+            <div id="cassgr_mnu_dim" style="height: 50px; padding-left:45px">
+
+            </div>
+            <div class="container-fluid box_forecast_mnu_dim" style="width:700px; height: 600px;" id="box_forecast_mnu_dim">
+                <div id="grid_forecast_mnu_dim"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="window_forecast_files" style="display: none">
+        <div>
+            <div class="container-fluid box_forecast_files" style="width:810px; height: 523px;" id="box_forecast_files">
+                <div id="grid_forecast_files"></div>
+            </div>
+
+            <div style="height: 50px; padding-left:45px">
+                <div style="display: inline-block; height: 35px; width: 120px;">
+                    <button class="btn btn-outline-primary" onclick="FileDelClick()">Удалить</button>
+                </div>
+                <div style="display: inline-block; height: 35px; width: 120px; float:right">
+                    <button class="btn btn-primary" onclick="FileOpenOkClick()">Открыть</button>
+                </div>
+                <!--<div style="display: inline-block; height: 35px; width: 120px; margin-left: auto; margin-right: 35px;">
+                 <button class="btn btn-outline-primary" onclick="">Отмена</button>
+                </div>-->
+            </div>
+        </div>
+    </div>
+
+
+    <ul id="tabs" class="nav nav-tabs" style="display:none">
+        <div style="width: 150px; margin-left: auto; margin-right: 15px;margin-bottom:5px ">
+ <span style='font-size:1.5rem'>МЕНЮ</span>           <img width="39px;" src="https://i.yapx.ru/PH3iC.jpg" style="cursor: pointer;" onclick="window.open('https://s2010/feedback/technolog','_self')" />
+        </div>
+        <li id="tab_forecast_menu" class="nav-item" style="display: inline-block;"><a class="nav-link active" data-toggle="tab" role="tab" href="#tabs-1">Прогноз по меню</a></li>
+        <li id="tab_forecast_calc" class="nav-item" style="display: inline-block;"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-2">Расчет ингредиентов</a></li>
+
+        <div style="width: 480px; margin-left: auto; margin-right: 75px;margin-bottom:5px ">
+            <img src="https://s2010/feedback/img/FileNew.gif" title="Создать" style="cursor: pointer;" onclick="FileCreate()" />
+            <img src="https://s2010/feedback/img/FileOpen.gif" title="Открыть" style="cursor: pointer;" onclick="FileOpen()" />
+
+            <div style="display: inline-block; width: 160px; padding: 5px;"><input id="file_description" readonly="readonly" value="" style="width: 160px;"></div>
+            &nbsp;
+            <img src="https://s2010/feedback/img/FileSave.gif" title="Сохранить" style="cursor: pointer;" onclick="FileSave()" />
+            <img src="https://s2010/feedback/img/FileSaveAs.gif" title="Сохранить как" style="cursor: pointer;" onclick="FileSaveAs()" />
+            <div style="display:inline-block;margin-left:10px;height:45px">
+                <span style="font-size:12px;display:block" id="file_month">&nbsp;</span>
+                <span style="font-size:12px;display:block" id="file_creator">&nbsp;</span>
+            </div>
+        </div>
+
+        <div style="width: 100px; margin-left: auto; margin-right:10px">
+            <button id="exit" class="btn btn-outline-primary k-button" data-role="button" role="button" aria-disabled="false" tabindex="0">Выход</button>
+        </div>
+    </ul>
+
+    <div class="tab-content" id="tab-content" style="display:none">
+        <div class="tab-pane fade show active" id="tabs-1">
+            <!-- Forecast -->
+
+            <div class="container-fluid" style="height: 750px; width: 1600px">
+
+                <div style="display: block; height: 85px; padding-top: 5px;">
+
+                    <div style="display: inline-block; height: 35px; width: 155px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="refreshForecast" onclick="RefreshForecast()">Сформировать</button>
+                    </div>
+
+                    &nbsp;
+
+                    <div style="display: inline-block;height: 35px; ">
+                        <div style="display:none; height: 30px; width: 185px">
+                            <div style="display: inline-block; height: 20px; width: 30px">Сегодня:</div><div style="display: inline-block">  <input id="datepicker_forecast" title="datepicker" style="display: inline-block; width: 150px" /></div>
+                        </div>
+
+                        <div style="display: inline-block; width: 103px; padding: 5px;">
+                            <a style='cursor:pointer;color:DarkBlue;text-decoration: underline;' onclick='SelectForecastDeps()'>Рестораны:</a>&nbsp;
+                            <input id="forecast_deps" readonly="readonly" value="Все" style="width: 93px;">
+                        </div>
+
+                        <!--<div style="display: inline-block; height: 35px; width: 75px; padding-left: 15px;">
+            <button class="btn btn-outline-primary" id="selectForecastDeps" onclick="SelectForecastDeps()">✎</button>
+        </div>
+        &nbsp;-->
+                        <div style="display: inline-block; width: 110px; padding: 5px;">
+                            <a style='cursor:pointer;color:DarkBlue;text-decoration: underline;' onclick='SelectForecastCassGroups()'>Касс.группы:</a>&nbsp;
+                            <input id="forecast_cass_groups" readonly="readonly" value="Все" style="width: 93px;">
+                        </div>
+
+                        <!--<div style="display: inline-block; height: 35px; width: 80px; padding-left: 15px;">
+            <button class="btn btn-outline-primary" id="selectForecastCassGroups" onclick="SelectForecastCassGroups()">✎</button>
+        </div>
+        &nbsp;-->
+
+                        <div style="display: inline-block; height: 30px; width: 112px">
+                            <div style="display: inline-block; height: 20px; width: 100px">
+                                <a style='cursor:pointer;color:DarkBlue;text-decoration: underline;' onclick='SelectForecastDimMode()'>Выбор&nbsp;ДиМ:</a>
+                            </div>
+                            <div style="display: inline-block">
+                                <input id="forecast_dim_mode" readonly="readonly" value="" style="width: 115px;">
+                                <!--<input id="datepicker_forecast_dim" title="datepicker" style="display: inline-block; width: 150px" />-->
+                                <!--<div style="display: inline-block; height: 35px; width: 20px; padding-left: 7px;">
+                    <button class="btn btn-outline-primary" id="selectForecastCassGroups" onclick="SelectForecastDimMode()">✎</button>
+                </div>-->
+                            </div>
+                        </div>
+
+                        &nbsp;
+                        <div style="display: inline-block; width: 85px; padding: 5px;">
+                            <a style='cursor:pointer;color:DarkBlue;text-decoration: underline;' onclick='ShowDeleted()'>Удалено:</a>&nbsp;
+                            <input id="forecast_deleted" readonly="readonly" value="" style="width: 83px;">
+                        </div>
+
+                        &nbsp;
+                        <div style="display: inline-block; width: 86px; padding: 5px;">
+                            <a style='cursor:pointer;color:DarkBlue;text-decoration: underline;' onclick='SelectForecastFilters()'>Фильтры:</a>&nbsp;
+                            <input id="forecast_filters" readonly="readonly" value="Нет" style="width: 83px;">
+                        </div>
+
+                        <!--<div style="display: inline-block; height: 35px; width: 80px; padding-left: 15px;">
+            <button class="btn btn-outline-primary" id="selectForecastFilters" onclick="SelectForecastFilters()">✎</button>
+        </div>-->
+                        <!--<div style="display: inline-block; height: 30px; width: 160px">
+            <div style="display: inline-block; height: 20px; width: 30px">Мин.&nbsp;дата&nbsp;ДиМ</div><div style="display: inline-block">  <input id="datepicker_forecast_dim" title="datepicker" style="display: inline-block; width: 150px" /></div>
+        </div>-->
+                        <!--&nbsp;
+        <div style='display:inline-block;margin-left:5px'>
+            <input type="checkbox" id="forecast_exclude_static_groups" /> Только группы с ДиМ
+        </div>-->
+                        &nbsp;
+                        <div style="display: none; width: 185px; padding: 5px;"><input id="forecast_dim" placeholder="ДиМ" style="width: 180px;"></div>
+
+                        &nbsp;
+                        <div style="display: inline-block; height: 30px; width: 180px">
+                            <div style="display: inline-block; height: 20px; width: 30px" id="forecast_prev_month_label_div"><p id="forecast_prev_month_label">Значения&nbsp;пред.&nbsp;месяца</p></div>
+                            <div style="display: inline-block">  <button class="btn btn-outline-primary" style="width: 170px" id="loadForecastPrevValues" onclick="LoadForecastPrevValues()">Загрузить&nbsp;&nbsp;&nbsp;(&nbsp;долго&nbsp;)</button></div>
+                        </div>
+
+                    </div>
+
+                    <div style="display: inline-block; height: 35px; width: 120px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="showForecastSources" onclick="ShowForecastSources(null,null,null)">Источники</button>
+                    </div>
+                    &nbsp;
+                    <div style="display: inline-block; width: 145px; padding: 5px;">Дата&nbsp;формир-ия:<input id="forecast_date_time" style="background-color:whitesmoke;width: 133px;" readonly="readonly" value=""></div>
+
+                    &nbsp;
+                    <div style="display: inline-block; height: 35px; width: 220px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="setForecastZeros" onclick="SetForecastZeros()">Заполнить прогноз</button>
+                    </div>
+                </div>
+
+
+
+                <div class="container-fluid box_forecast" style="height: 750px;" id="box_forecast">
+                    <div id="grid_forecast"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="tab-pane fade" id="tabs-2">
+            <!-- Forecast CALC -->
+
+            <div class="container-fluid" style="height: 750px; width: 1600px">
+
+
+
+                <div style="display: block; height: 85px; padding-top: 5px;">
+
+
+                    <div style="display: inline-block; height: 35px; width: 140px; padding-left: 15px;">
+                        <button class="btn btn-outline-primary" id="calcForecastCalc" onclick="CalcForecastCalc()">Расчитать</button>
+                    </div>
+
+
+                    &nbsp;
+                    <div style="display: inline-block; height: 30px; width: 230px">
+                        <div style="display: inline-block; height: 20px; width: 190px">Макс.&nbsp;дата&nbsp;привязки&nbsp;техкарт</div><div style="display: inline-block">  <input id="datepicker_forecast_calc_recipe_bind_max" title="datepicker" style="display: inline-block; width: 190px" /></div>
+                    </div>
+                    &nbsp;
+                    <div style="display: inline-block; width: 148px; padding: 5px;">Подразделения:<input id="forecast_calc_deps" style="background-color:whitesmoke;width: 133px;" readonly="readonly" value=""></div>
+                    <div style="display: inline-block; width: 148px; padding: 5px;">Касс.&nbsp;группы:<input id="forecast_calc_cass_groups" style="background-color:whitesmoke;width: 133px;" readonly="readonly" value=""></div>
+                    <div style="display: inline-block; width: 148px; padding: 5px;">Время&nbsp;на&nbsp;расчет:<input id="forecast_calc_elapsed_time" style="background-color:whitesmoke;width: 133px;" readonly="readonly" value=""></div>
+                    <div style="display: inline-block; width: 148px; padding: 5px;">Дата&nbsp;расчета:<input id="forecast_calc_date_time" style="background-color:whitesmoke;width: 133px;" readonly="readonly" value=""></div>
+                    &nbsp;
+                    <div style="display: inline-block; width: 330px; padding: 5px;"><input type='checkbox' id='forecast_calc_write_prev_parents' checked="checked"/> Сохранять источники пред. месяца</div>
+                    <div style="display: none;height: 35px; ">
+                        <div style="display: inline-block; width: 435px; padding: 5px;"><input id="forecast_calc_recipe_mode" placeholder="Расчет по техкарте..." style="width: 430px;"></div>
+                    </div>
+                </div>
+
+                <div class="container-fluid box_forecast_calc" style="height: 750px;" id="box_forecast_calc">
+                    <div id="grid_forecast_calc"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!--
+            </div>
+    -->
+
+
+
+
+
+
+
+</body>
+</html>
